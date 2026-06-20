@@ -1,0 +1,7 @@
+{
+  "name": "muttum-app",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
