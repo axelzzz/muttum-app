@@ -1,128 +1,150 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AlertController, ToastController } from '@ionic/angular';
+import {
+  AlertController,
+  IonBackButton,
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonInput,
+  IonItem,
+  IonSkeletonText,
+  IonTextarea,
+  IonTitle,
+  IonToolbar,
+  ToastController,
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { addOutline, chatbubbleOutline, closeOutline, createOutline, star, starOutline, trashOutline } from 'ionicons/icons';
 import { WordService } from '../../core/services/word.service';
 import { UserWordPopulated } from '../../core/models/word.model';
 
 @Component({
   selector: 'app-word-detail',
   templateUrl: './word-detail.page.html',
-  styleUrls: ['./word-detail.page.scss'],
-  standalone: false,
+  imports: [
+    DatePipe,
+    IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonIcon,
+    IonContent, IonSkeletonText, IonItem, IonInput, IonTextarea,
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WordDetailPage implements OnInit {
-  userWord: UserWordPopulated | null = null;
-  isLoading = true;
-  editingNotes = false;
-  notesBuffer = '';
-  newTag = '';
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly wordService = inject(WordService);
+  private readonly alertCtrl = inject(AlertController);
+  private readonly toastCtrl = inject(ToastController);
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private wordService: WordService,
-    private alertCtrl: AlertController,
-    private toastCtrl: ToastController
-  ) {}
+  protected readonly userWord = signal<UserWordPopulated | null>(null);
+  protected readonly isLoading = signal(true);
+  protected readonly editingNotes = signal(false);
+  protected readonly notesBuffer = signal('');
+  protected readonly newTag = signal('');
+
+  constructor() {
+    addIcons({ star, starOutline, chatbubbleOutline, closeOutline, addOutline, createOutline, trashOutline });
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.wordService.getOne(id).subscribe({
       next: (data) => {
-        this.userWord = data;
-        this.notesBuffer = data.notes;
-        this.isLoading = false;
+        this.userWord.set(data);
+        this.notesBuffer.set(data.notes);
+        this.isLoading.set(false);
       },
       error: () => {
-        this.isLoading = false;
+        this.isLoading.set(false);
         this.router.navigate(['/tabs/dictionary']);
       },
     });
   }
 
-  toggleFavorite(): void {
-    if (!this.userWord) return;
-    const favorite = !this.userWord.favorite;
-    this.wordService.update(this.userWord._id, { favorite }).subscribe({
+  protected toggleFavorite(): void {
+    const word = this.userWord();
+    if (!word) return;
+    this.wordService.update(word._id, { favorite: !word.favorite }).subscribe({
+      next: (updated) => this.userWord.set(updated),
+    });
+  }
+
+  protected startEditingNotes(): void {
+    this.notesBuffer.set(this.userWord()?.notes ?? '');
+    this.editingNotes.set(true);
+  }
+
+  protected saveNotes(): void {
+    const word = this.userWord();
+    if (!word) return;
+    this.wordService.update(word._id, { notes: this.notesBuffer() }).subscribe({
       next: (updated) => {
-        this.userWord = updated;
+        this.userWord.set(updated);
+        this.editingNotes.set(false);
       },
     });
   }
 
-  startEditingNotes(): void {
-    this.notesBuffer = this.userWord?.notes ?? '';
-    this.editingNotes = true;
+  protected cancelEditingNotes(): void {
+    this.editingNotes.set(false);
+    this.notesBuffer.set(this.userWord()?.notes ?? '');
   }
 
-  saveNotes(): void {
-    if (!this.userWord) return;
-    this.wordService.update(this.userWord._id, { notes: this.notesBuffer }).subscribe({
-      next: (updated) => {
-        this.userWord = updated;
-        this.editingNotes = false;
-      },
-    });
-  }
-
-  cancelEditingNotes(): void {
-    this.editingNotes = false;
-    this.notesBuffer = this.userWord?.notes ?? '';
-  }
-
-  addTag(): void {
-    const tag = this.newTag.trim();
-    if (!tag || !this.userWord || this.userWord.tags.includes(tag)) {
-      this.newTag = '';
+  protected addTag(): void {
+    const tag = this.newTag().trim();
+    const word = this.userWord();
+    if (!tag || !word || word.tags.includes(tag)) {
+      this.newTag.set('');
       return;
     }
-    const tags = [...this.userWord.tags, tag];
-    this.wordService.update(this.userWord._id, { tags }).subscribe({
+    this.wordService.update(word._id, { tags: [...word.tags, tag] }).subscribe({
       next: (updated) => {
-        this.userWord = updated;
-        this.newTag = '';
+        this.userWord.set(updated);
+        this.newTag.set('');
       },
     });
   }
 
-  removeTag(tag: string): void {
-    if (!this.userWord) return;
-    const tags = this.userWord.tags.filter((t) => t !== tag);
-    this.wordService.update(this.userWord._id, { tags }).subscribe({
-      next: (updated) => {
-        this.userWord = updated;
-      },
+  protected removeTag(tag: string): void {
+    const word = this.userWord();
+    if (!word) return;
+    this.wordService.update(word._id, { tags: word.tags.filter((t) => t !== tag) }).subscribe({
+      next: (updated) => this.userWord.set(updated),
     });
   }
 
-  async confirmDelete(): Promise<void> {
+  protected async confirmDelete(): Promise<void> {
     const alert = await this.alertCtrl.create({
       header: 'Supprimer ce mot ?',
       message: 'Cette action retirera le mot de votre dictionnaire personnel.',
       buttons: [
         { text: 'Annuler', role: 'cancel' },
-        {
-          text: 'Supprimer',
-          role: 'destructive',
-          handler: () => this.deleteWord(),
-        },
+        { text: 'Supprimer', role: 'destructive', handler: () => this.deleteWord() },
       ],
     });
     await alert.present();
   }
 
   private deleteWord(): void {
-    if (!this.userWord) return;
-    this.wordService.remove(this.userWord._id).subscribe({
+    const word = this.userWord();
+    if (!word) return;
+    this.wordService.remove(word._id).subscribe({
       next: async () => {
-        const toast = await this.toastCtrl.create({
-          message: 'Mot supprimé.',
-          duration: 2000,
-          color: 'success',
-        });
+        const toast = await this.toastCtrl.create({ message: 'Mot supprimé.', duration: 2000, color: 'success' });
         await toast.present();
         this.router.navigate(['/tabs/dictionary']);
       },
     });
+  }
+
+  protected onNewTagInput(event: CustomEvent<{ value: string }>): void {
+    this.newTag.set(event.detail.value ?? '');
+  }
+
+  protected onNotesInput(event: CustomEvent<{ value: string }>): void {
+    this.notesBuffer.set(event.detail.value ?? '');
   }
 }

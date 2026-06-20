@@ -4,7 +4,6 @@
   </ion-toolbar>
   <ion-toolbar>
     <ion-searchbar
-      #searchbar
       placeholder="Chercher un mot…"
       debounce="600"
       animated
@@ -24,78 +23,93 @@
   </ion-header>
 
   <div class="search-body">
-    <!-- Initial state -->
-    <div class="empty-state" *ngIf="!isLoading && !result && !notFound && !lastQuery">
-      <div class="empty-icon" aria-hidden="true">
-        <ion-icon name="search-outline"></ion-icon>
-      </div>
-      <h2 class="empty-title">Explorez le français</h2>
-      <p class="empty-text">Saisissez un mot pour découvrir ses définitions, ses catégories grammaticales et des exemples d'usage.</p>
-    </div>
-
-    <!-- Loading -->
-    <div class="search-loading" *ngIf="isLoading" aria-live="polite" aria-busy="true">
-      <ion-skeleton-text animated class="skeleton-word"></ion-skeleton-text>
-      <ion-skeleton-text animated class="skeleton-badge"></ion-skeleton-text>
-      <ion-skeleton-text animated class="skeleton-line"></ion-skeleton-text>
-      <ion-skeleton-text animated class="skeleton-line short"></ion-skeleton-text>
-      <ion-skeleton-text animated class="skeleton-line"></ion-skeleton-text>
-    </div>
-
-    <!-- Not found -->
-    <div class="empty-state" *ngIf="notFound" aria-live="polite">
-      <div class="empty-icon" aria-hidden="true">
-        <ion-icon name="help-circle-outline"></ion-icon>
-      </div>
-      <h2 class="empty-title">Mot introuvable</h2>
-      <p class="empty-text">
-        « <strong>{{ lastQuery }}</strong> » n'a pas été trouvé dans le dictionnaire Wiktionnaire.
-      </p>
-    </div>
-
-    <!-- Result -->
-    <div class="result-card" *ngIf="result && !isLoading" aria-live="polite">
-      <div class="result-header">
-        <div>
-          <h2 class="result-word">{{ result.wordId.word }}</h2>
-          <p class="result-meta">
-            Recherché {{ result.searchCount }} fois ·
-            <ion-badge color="light" class="source-badge">{{ result.wordId.source }}</ion-badge>
-          </p>
+    @if (!isLoading() && !result() && !notFound() && !lastQuery()) {
+      <div class="empty-state">
+        <div class="empty-icon" aria-hidden="true">
+          <ion-icon name="search-outline"></ion-icon>
         </div>
-        <ion-button fill="clear" (click)="openDetail(result)" aria-label="Voir les détails complets">
-          <ion-icon name="open-outline" slot="icon-only"></ion-icon>
-        </ion-button>
+        <h2 class="empty-title">Explorez le français</h2>
+        <p class="empty-text">Saisissez un mot pour découvrir ses définitions, ses catégories grammaticales et des exemples d'usage.</p>
       </div>
+    }
 
-      <div class="definitions-list" *ngIf="result.wordId.definitions.length > 0">
-        <div
-          class="definition-group"
-          *ngFor="let def of result.wordId.definitions; let i = index"
-        >
-          <span class="pos-chip" *ngIf="def.partOfSpeech">{{ def.partOfSpeech }}</span>
-          <p class="definition-text">{{ def.definition }}</p>
-          <ul class="examples-list" *ngIf="def.examples.length > 0">
-            <li *ngFor="let ex of def.examples" class="example-item">{{ ex }}</li>
-          </ul>
-          <div class="definition-divider" *ngIf="i < result.wordId.definitions.length - 1"></div>
+    @if (isLoading()) {
+      <div class="search-loading" aria-live="polite" aria-busy="true">
+        <ion-skeleton-text animated class="skeleton-word"></ion-skeleton-text>
+        <ion-skeleton-text animated class="skeleton-badge"></ion-skeleton-text>
+        <ion-skeleton-text animated class="skeleton-line"></ion-skeleton-text>
+        <ion-skeleton-text animated class="skeleton-line short"></ion-skeleton-text>
+        <ion-skeleton-text animated class="skeleton-line"></ion-skeleton-text>
+      </div>
+    }
+
+    @if (notFound()) {
+      <div class="empty-state" aria-live="polite">
+        <div class="empty-icon" aria-hidden="true">
+          <ion-icon name="help-circle-outline"></ion-icon>
         </div>
+        <h2 class="empty-title">Mot introuvable</h2>
+        <p class="empty-text">
+          « <strong>{{ lastQuery() }}</strong> » n'a pas été trouvé dans le dictionnaire Wiktionnaire.
+        </p>
       </div>
+    }
 
-      <div class="result-actions">
-        <ion-chip
-          [color]="result.favorite ? 'warning' : 'medium'"
-          (click)="openDetail(result)"
-          [attr.aria-label]="result.favorite ? 'Favori' : 'Ajouter aux favoris'"
-        >
-          <ion-icon [name]="result.favorite ? 'star' : 'star-outline'" aria-hidden="true"></ion-icon>
-          <ion-label>{{ result.favorite ? 'Favori' : 'Favori' }}</ion-label>
-        </ion-chip>
-        <ion-chip color="medium" (click)="openDetail(result)" aria-label="Modifier">
-          <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
-          <ion-label>Notes &amp; tags</ion-label>
-        </ion-chip>
-      </div>
-    </div>
+    @if (result(); as word) {
+      @if (!isLoading()) {
+        <div class="result-card" aria-live="polite">
+          <div class="result-header">
+            <div>
+              <h2 class="result-word">{{ word.wordId.word }}</h2>
+              <p class="result-meta">
+                Recherché {{ word.searchCount }} fois ·
+                <ion-badge color="light" class="source-badge">{{ word.wordId.source }}</ion-badge>
+              </p>
+            </div>
+            <ion-button fill="clear" (click)="openDetail(word)" aria-label="Voir les détails complets">
+              <ion-icon name="open-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+
+          @if (word.wordId.definitions.length > 0) {
+            <div class="definitions-list">
+              @for (def of word.wordId.definitions; track def.definition; let i = $index) {
+                <div class="definition-group">
+                  @if (def.partOfSpeech) {
+                    <span class="pos-chip">{{ def.partOfSpeech }}</span>
+                  }
+                  <p class="definition-text">{{ def.definition }}</p>
+                  @if (def.examples.length > 0) {
+                    <ul class="examples-list">
+                      @for (ex of def.examples; track ex) {
+                        <li class="example-item">{{ ex }}</li>
+                      }
+                    </ul>
+                  }
+                  @if (i < word.wordId.definitions.length - 1) {
+                    <div class="definition-divider"></div>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          <div class="result-actions">
+            <ion-chip
+              [color]="word.favorite ? 'warning' : 'medium'"
+              (click)="openDetail(word)"
+              [attr.aria-label]="word.favorite ? 'Favori' : 'Ajouter aux favoris'"
+            >
+              <ion-icon [name]="word.favorite ? 'star' : 'star-outline'" aria-hidden="true"></ion-icon>
+              <ion-label>Favori</ion-label>
+            </ion-chip>
+            <ion-chip color="medium" (click)="openDetail(word)" aria-label="Modifier">
+              <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
+              <ion-label>Notes &amp; tags</ion-label>
+            </ion-chip>
+          </div>
+        </div>
+      }
+    }
   </div>
 </ion-content>

@@ -1,45 +1,53 @@
-import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { LoadingController, ToastController } from '@ionic/angular';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import {
+  IonButton,
+  IonContent,
+  IonIcon,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonNote,
+  LoadingController,
+  ToastController,
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
-  styleUrls: ['./login.page.scss'],
-  standalone: false,
+  imports: [ReactiveFormsModule, RouterLink, IonContent, IonItem, IonLabel, IonInput, IonButton, IonNote, IonIcon],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginPage {
-  form: FormGroup;
-  isPasswordVisible = false;
+  private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly loadingCtrl = inject(LoadingController);
+  private readonly toastCtrl = inject(ToastController);
 
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private router: Router,
-    private loadingCtrl: LoadingController,
-    private toastCtrl: ToastController
-  ) {
-    this.form = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-    });
+  protected readonly isPasswordVisible = signal(false);
+
+  protected readonly form = this.fb.group({
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+  });
+
+  constructor() {
+    addIcons({ eyeOutline, eyeOffOutline });
   }
 
-  get emailControl() {
-    return this.form.get('email')!;
+  protected get emailControl() { return this.form.get('email')!; }
+  protected get passwordControl() { return this.form.get('password')!; }
+
+  protected togglePasswordVisibility(): void {
+    this.isPasswordVisible.update(v => !v);
   }
 
-  get passwordControl() {
-    return this.form.get('password')!;
-  }
-
-  togglePasswordVisibility(): void {
-    this.isPasswordVisible = !this.isPasswordVisible;
-  }
-
-  async submit(): Promise<void> {
+  protected async submit(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -48,7 +56,7 @@ export class LoginPage {
     const loading = await this.loadingCtrl.create({ message: 'Connexion…' });
     await loading.present();
 
-    this.authService.login(this.form.value).subscribe({
+    this.authService.login(this.form.value as { email: string; password: string }).subscribe({
       next: async () => {
         await loading.dismiss();
         await this.router.navigate(['/tabs/search']);
@@ -57,12 +65,7 @@ export class LoginPage {
         await loading.dismiss();
         const message =
           err.status === 401 ? 'Email ou mot de passe incorrect.' : 'Une erreur est survenue.';
-        const toast = await this.toastCtrl.create({
-          message,
-          duration: 3000,
-          color: 'danger',
-          position: 'bottom',
-        });
+        const toast = await this.toastCtrl.create({ message, duration: 3000, color: 'danger', position: 'bottom' });
         await toast.present();
       },
     });

@@ -1,7 +1,19 @@
-import { Component } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { LoadingController, ToastController } from '@ionic/angular';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import {
+  IonButton,
+  IonContent,
+  IonIcon,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonNote,
+  LoadingController,
+  ToastController,
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
 import { AuthService } from '../../../core/services/auth.service';
 
 function passwordMatchValidator(group: AbstractControl): ValidationErrors | null {
@@ -13,41 +25,42 @@ function passwordMatchValidator(group: AbstractControl): ValidationErrors | null
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
-  styleUrls: ['./register.page.scss'],
-  standalone: false,
+  imports: [ReactiveFormsModule, RouterLink, IonContent, IonItem, IonLabel, IonInput, IonButton, IonNote, IonIcon],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterPage {
-  form: FormGroup;
-  isPasswordVisible = false;
+  private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly loadingCtrl = inject(LoadingController);
+  private readonly toastCtrl = inject(ToastController);
 
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private router: Router,
-    private loadingCtrl: LoadingController,
-    private toastCtrl: ToastController
-  ) {
-    this.form = this.fb.group(
-      {
-        username: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
-        email: ['', [Validators.required, Validators.email]],
-        password: ['', [Validators.required, Validators.minLength(6)]],
-        confirmPassword: ['', Validators.required],
-      },
-      { validators: passwordMatchValidator }
-    );
+  protected readonly isPasswordVisible = signal(false);
+
+  protected readonly form = this.fb.group(
+    {
+      username: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', Validators.required],
+    },
+    { validators: passwordMatchValidator }
+  );
+
+  constructor() {
+    addIcons({ eyeOutline, eyeOffOutline });
   }
 
-  get usernameControl() { return this.form.get('username')!; }
-  get emailControl() { return this.form.get('email')!; }
-  get passwordControl() { return this.form.get('password')!; }
-  get confirmPasswordControl() { return this.form.get('confirmPassword')!; }
+  protected get usernameControl() { return this.form.get('username')!; }
+  protected get emailControl() { return this.form.get('email')!; }
+  protected get passwordControl() { return this.form.get('password')!; }
+  protected get confirmPasswordControl() { return this.form.get('confirmPassword')!; }
 
-  togglePasswordVisibility(): void {
-    this.isPasswordVisible = !this.isPasswordVisible;
+  protected togglePasswordVisibility(): void {
+    this.isPasswordVisible.update(v => !v);
   }
 
-  async submit(): Promise<void> {
+  protected async submit(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -56,7 +69,12 @@ export class RegisterPage {
     const loading = await this.loadingCtrl.create({ message: 'Création du compte…' });
     await loading.present();
 
-    const { confirmPassword, ...payload } = this.form.value;
+    const { confirmPassword: _, ...payload } = this.form.value as {
+      username: string;
+      email: string;
+      password: string;
+      confirmPassword: string;
+    };
     this.authService.register(payload).subscribe({
       next: async () => {
         await loading.dismiss();
@@ -66,12 +84,7 @@ export class RegisterPage {
         await loading.dismiss();
         const message =
           err.status === 409 ? 'Cet e-mail est déjà utilisé.' : 'Une erreur est survenue.';
-        const toast = await this.toastCtrl.create({
-          message,
-          duration: 3000,
-          color: 'danger',
-          position: 'bottom',
-        });
+        const toast = await this.toastCtrl.create({ message, duration: 3000, color: 'danger', position: 'bottom' });
         await toast.present();
       },
     });

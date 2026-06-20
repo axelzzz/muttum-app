@@ -1,6 +1,23 @@
-import { Component, OnInit } from '@angular/core';
-import { InfiniteScrollCustomEvent } from '@ionic/angular';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { InfiniteScrollCustomEvent } from '@ionic/angular';
+import {
+  IonButton,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+  IonRefresher,
+  IonRefresherContent,
+  IonSearchbar,
+  IonSkeletonText,
+  IonTitle,
+  IonToolbar,
+  IonButtons,
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { bookOutline, chevronForwardOutline, star, starOutline } from 'ionicons/icons';
 import { WordService } from '../../core/services/word.service';
 import { UserWordPopulated } from '../../core/models/word.model';
 
@@ -9,18 +26,28 @@ const PAGE_SIZE = 20;
 @Component({
   selector: 'app-dictionary',
   templateUrl: './dictionary.page.html',
-  styleUrls: ['./dictionary.page.scss'],
-  standalone: false,
+  imports: [
+    IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
+    IonSearchbar, IonContent, IonRefresher, IonRefresherContent,
+    IonSkeletonText, IonInfiniteScroll, IonInfiniteScrollContent,
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DictionaryPage implements OnInit {
-  words: UserWordPopulated[] = [];
-  isLoading = true;
-  hasMore = true;
-  currentPage = 1;
-  searchQuery = '';
-  showFavoritesOnly = false;
+  private readonly wordService = inject(WordService);
+  private readonly router = inject(Router);
 
-  constructor(private wordService: WordService, private router: Router) {}
+  protected readonly words = signal<UserWordPopulated[]>([]);
+  protected readonly isLoading = signal(true);
+  protected readonly hasMore = signal(true);
+  protected readonly showFavoritesOnly = signal(false);
+
+  private currentPage = 1;
+  private searchQuery = '';
+
+  constructor() {
+    addIcons({ star, starOutline, bookOutline, chevronForwardOutline });
+  }
 
   ngOnInit(): void {
     this.loadWords(true);
@@ -30,40 +57,40 @@ export class DictionaryPage implements OnInit {
     this.refresh();
   }
 
-  refresh(event?: CustomEvent): void {
+  protected refresh(event?: CustomEvent): void {
     this.currentPage = 1;
-    this.words = [];
-    this.hasMore = true;
+    this.words.set([]);
+    this.hasMore.set(true);
     this.loadWords(true, event);
   }
 
-  onSearch(event: CustomEvent): void {
+  protected onSearch(event: CustomEvent): void {
     this.searchQuery = (event.detail.value as string | undefined)?.trim() ?? '';
     this.currentPage = 1;
-    this.words = [];
-    this.hasMore = true;
+    this.words.set([]);
+    this.hasMore.set(true);
     this.loadWords(true);
   }
 
-  clearSearch(): void {
+  protected clearSearch(): void {
     this.searchQuery = '';
     this.refresh();
   }
 
-  toggleFavorites(): void {
-    this.showFavoritesOnly = !this.showFavoritesOnly;
+  protected toggleFavorites(): void {
+    this.showFavoritesOnly.update(v => !v);
     this.currentPage = 1;
-    this.words = [];
-    this.hasMore = true;
+    this.words.set([]);
+    this.hasMore.set(true);
     this.loadWords(true);
   }
 
-  loadMore(event: InfiniteScrollCustomEvent): void {
+  protected loadMore(event: InfiniteScrollCustomEvent): void {
     this.currentPage++;
     this.loadWords(false, undefined, event);
   }
 
-  openDetail(userWord: UserWordPopulated): void {
+  protected openDetail(userWord: UserWordPopulated): void {
     this.router.navigate(['/word', userWord._id]);
   }
 
@@ -72,7 +99,7 @@ export class DictionaryPage implements OnInit {
     refreshEvent?: CustomEvent,
     infiniteEvent?: InfiniteScrollCustomEvent
   ): void {
-    if (showSpinner) this.isLoading = true;
+    if (showSpinner) this.isLoading.set(true);
 
     const query: { page: number; limit: number; search?: string } = {
       page: this.currentPage,
@@ -81,16 +108,16 @@ export class DictionaryPage implements OnInit {
     if (this.searchQuery) query.search = this.searchQuery;
 
     this.wordService.list(query).subscribe({
-      next: ({ data, total }) => {
-        const filtered = this.showFavoritesOnly ? data.filter((w) => w.favorite) : data;
-        this.words = showSpinner ? filtered : [...this.words, ...filtered];
-        this.hasMore = this.words.length < total && data.length === PAGE_SIZE;
-        this.isLoading = false;
+      next: ({ data = [], total }) => {
+        const filtered = this.showFavoritesOnly() ? data.filter((w) => w.favorite) : data;
+        this.words.set(showSpinner ? filtered : [...this.words(), ...filtered]);
+        this.hasMore.set(this.words().length < total && data.length === PAGE_SIZE);
+        this.isLoading.set(false);
         refreshEvent?.detail?.complete?.();
         infiniteEvent?.target?.complete();
       },
       error: () => {
-        this.isLoading = false;
+        this.isLoading.set(false);
         refreshEvent?.detail?.complete?.();
         infiniteEvent?.target?.complete();
       },

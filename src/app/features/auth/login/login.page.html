@@ -21,12 +21,12 @@
           aria-label="Adresse e-mail"
           aria-required="true"
         ></ion-input>
-        <ion-note slot="error" *ngIf="emailControl.hasError('required')">
-          L'e-mail est requis.
-        </ion-note>
-        <ion-note slot="error" *ngIf="emailControl.hasError('email')">
-          Format d'e-mail invalide.
-        </ion-note>
+        @if (emailControl.hasError('required')) {
+          <ion-note slot="error">L'e-mail est requis.</ion-note>
+        }
+        @if (emailControl.hasError('email')) {
+          <ion-note slot="error">Format d'e-mail invalide.</ion-note>
+        }
       </ion-item>
 
       <ion-item
@@ -37,7 +37,7 @@
         <ion-label position="floating">Mot de passe</ion-label>
         <ion-input
           formControlName="password"
-          [type]="isPasswordVisible ? 'text' : 'password'"
+          [type]="isPasswordVisible() ? 'text' : 'password'"
           autocomplete="current-password"
           aria-label="Mot de passe"
           aria-required="true"
@@ -47,17 +47,17 @@
           fill="clear"
           size="small"
           (click)="togglePasswordVisibility()"
-          [attr.aria-label]="isPasswordVisible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+          [attr.aria-label]="isPasswordVisible() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
           class="password-toggle"
         >
-          <ion-icon [name]="isPasswordVisible ? 'eye-off-outline' : 'eye-outline'" aria-hidden="true"></ion-icon>
+          <ion-icon [name]="isPasswordVisible() ? 'eye-off-outline' : 'eye-outline'" aria-hidden="true"></ion-icon>
         </ion-button>
-        <ion-note slot="error" *ngIf="passwordControl.hasError('required')">
-          Le mot de passe est requis.
-        </ion-note>
-        <ion-note slot="error" *ngIf="passwordControl.hasError('minlength')">
-          Minimum 6 caractères.
-        </ion-note>
+        @if (passwordControl.hasError('required')) {
+          <ion-note slot="error">Le mot de passe est requis.</ion-note>
+        }
+        @if (passwordControl.hasError('minlength')) {
+          <ion-note slot="error">Minimum 6 caractères.</ion-note>
+        }
       </ion-item>
 
       <ion-button

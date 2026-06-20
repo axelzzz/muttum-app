@@ -1,52 +1,57 @@
-import { Component, OnInit } from '@angular/core';
-import { AlertController, ToastController } from '@ionic/angular';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import {
+  AlertController,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonTitle,
+  IonToggle,
+  IonToolbar,
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { calendarOutline, logOutOutline, mailOutline, moonOutline, personOutline } from 'ionicons/icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
-import { User } from '../../core/models/user.model';
 
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.page.html',
-  styleUrls: ['./profile.page.scss'],
-  standalone: false,
+  imports: [
+    DatePipe,
+    IonHeader, IonToolbar, IonTitle, IonContent,
+    IonList, IonItem, IonLabel, IonIcon, IonToggle,
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProfilePage implements OnInit {
-  user: User | null = null;
-  isDark$: Observable<boolean>;
+export class ProfilePage {
+  private readonly authService = inject(AuthService);
+  private readonly themeService = inject(ThemeService);
+  private readonly alertCtrl = inject(AlertController);
+  private readonly router = inject(Router);
 
-  constructor(
-    private authService: AuthService,
-    private themeService: ThemeService,
-    private alertCtrl: AlertController,
-    private toastCtrl: ToastController,
-    private router: Router
-  ) {
-    this.isDark$ = this.themeService.isDark$;
+  protected readonly user = this.authService.currentUser;
+  protected readonly isDark = this.themeService.isDark;
+
+  constructor() {
+    addIcons({ moonOutline, personOutline, mailOutline, calendarOutline, logOutOutline });
   }
 
-  ngOnInit(): void {
-    this.authService.currentUser$.subscribe((user) => {
-      this.user = user;
-    });
-  }
-
-  onThemeToggle(event: CustomEvent): void {
+  protected onThemeToggle(event: CustomEvent): void {
     this.themeService.applyScheme(event.detail.checked ? 'dark' : 'light');
   }
 
-  async confirmLogout(): Promise<void> {
+  protected async confirmLogout(): Promise<void> {
     const alert = await this.alertCtrl.create({
       header: 'Se déconnecter ?',
       message: 'Vous devrez vous reconnecter pour accéder à votre dictionnaire.',
       buttons: [
         { text: 'Annuler', role: 'cancel' },
-        {
-          text: 'Déconnexion',
-          role: 'destructive',
-          handler: () => this.logout(),
-        },
+        { text: 'Déconnexion', role: 'destructive', handler: () => this.logout() },
       ],
     });
     await alert.present();

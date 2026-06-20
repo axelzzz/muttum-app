@@ -1,13 +1,16 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { searchOutline, bookOutline, personOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-tabs',
   templateUrl: 'tabs.page.html',
-  styleUrls: ['tabs.page.scss'],
-  standalone: false,
+  imports: [IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TabsPage {
-
-  constructor() {}
-
+  constructor() {
+    addIcons({ searchOutline, bookOutline, personOutline });
+  }
 }

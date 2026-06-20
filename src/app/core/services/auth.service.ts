@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthResponse, LoginPayload, RegisterPayload, User } from '../models/user.model';
 
@@ -9,23 +9,13 @@ const USER_KEY = 'muttum_user';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/auth`;
 
-  private currentUserSubject = new BehaviorSubject<User | null>(
-    this.loadStoredUser()
-  );
+  private readonly _currentUser = signal<User | null>(this.loadStoredUser());
 
-  currentUser$ = this.currentUserSubject.asObservable();
-
-  constructor(private http: HttpClient) {}
-
-  get isAuthenticated(): boolean {
-    return !!this.getToken();
-  }
-
-  get currentUser(): User | null {
-    return this.currentUserSubject.value;
-  }
+  readonly currentUser = this._currentUser.asReadonly();
+  readonly isAuthenticated = computed(() => !!this.getToken());
 
   register(payload: RegisterPayload): Observable<AuthResponse> {
     return this.http
@@ -42,13 +32,13 @@ export class AuthService {
   me(): Observable<{ user: User }> {
     return this.http
       .get<{ user: User }>(`${this.baseUrl}/me`)
-      .pipe(tap(({ user }) => this.currentUserSubject.next(user)));
+      .pipe(tap(({ user }) => this._currentUser.set(user)));
   }
 
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
-    this.currentUserSubject.next(null);
+    this._currentUser.set(null);
   }
 
   getToken(): string | null {
@@ -58,7 +48,7 @@ export class AuthService {
   private persistSession(res: AuthResponse): void {
     localStorage.setItem(TOKEN_KEY, res.token);
     localStorage.setItem(USER_KEY, JSON.stringify(res.user));
-    this.currentUserSubject.next(res.user);
+    this._currentUser.set(res.user);
   }
 
   private loadStoredUser(): User | null {

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -11,9 +11,8 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class WordService {
+  private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/words`;
-
-  constructor(private http: HttpClient) {}
 
   search(word: string): Observable<UserWordPopulated> {
     const params = new HttpParams().set('word', word);
