@@ -1,0 +1,163 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/dictionary" aria-label="Retour"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ userWord?.wordId?.word ?? '' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        *ngIf="userWord"
+        (click)="toggleFavorite()"
+        [attr.aria-label]="userWord.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+        [attr.aria-pressed]="userWord.favorite"
+      >
+        <ion-icon
+          slot="icon-only"
+          [name]="userWord.favorite ? 'star' : 'star-outline'"
+          [color]="userWord.favorite ? 'warning' : ''"
+          aria-hidden="true"
+        ></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <!-- Skeleton -->
+  <div class="detail-body" *ngIf="isLoading" aria-busy="true">
+    <ion-skeleton-text animated class="skel-title"></ion-skeleton-text>
+    <ion-skeleton-text animated class="skel-meta"></ion-skeleton-text>
+    <div class="section-card">
+      <ion-skeleton-text animated class="skel-line" *ngFor="let i of [1,2,3]"></ion-skeleton-text>
+    </div>
+  </div>
+
+  <div class="detail-body" *ngIf="!isLoading && userWord">
+    <!-- Hero -->
+    <div class="word-hero">
+      <h1 class="hero-word">{{ userWord.wordId.word }}</h1>
+      <div class="hero-meta">
+        <span class="source-badge">{{ userWord.wordId.source }}</span>
+        <span class="meta-dot" aria-hidden="true">·</span>
+        <span class="meta-text">{{ userWord.searchCount }} recherche{{ userWord.searchCount > 1 ? 's' : '' }}</span>
+      </div>
+    </div>
+
+    <!-- Definitions -->
+    <div class="section-card">
+      <h2 class="section-title">Définitions</h2>
+      <div class="definitions-list">
+        <div
+          class="definition-entry"
+          *ngFor="let def of userWord.wordId.definitions; let i = index"
+        >
+          <div class="entry-header">
+            <span class="entry-number" aria-hidden="true">{{ i + 1 }}</span>
+            <span class="pos-label" *ngIf="def.partOfSpeech">{{ def.partOfSpeech }}</span>
+          </div>
+          <p class="entry-def">{{ def.definition }}</p>
+          <ul class="examples-list" *ngIf="def.examples.length > 0">
+            <li *ngFor="let ex of def.examples" class="example-item">
+              <ion-icon name="chatbubble-outline" aria-hidden="true" class="ex-icon"></ion-icon>
+              {{ ex }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tags -->
+    <div class="section-card">
+      <h2 class="section-title">Tags</h2>
+      <div class="tags-container" *ngIf="userWord.tags.length > 0">
+        <button
+          class="tag-chip removable"
+          *ngFor="let tag of userWord.tags"
+          (click)="removeTag(tag)"
+          [attr.aria-label]="'Supprimer le tag ' + tag"
+        >
+          {{ tag }}
+          <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+      <p class="no-content-text" *ngIf="userWord.tags.length === 0">Aucun tag pour l'instant.</p>
+      <div class="tag-input-row">
+        <ion-item class="tag-input-item" lines="none">
+          <ion-input
+            [(ngModel)]="newTag"
+            placeholder="Ajouter un tag…"
+            (keyup.enter)="addTag()"
+            maxlength="30"
+            aria-label="Nouveau tag"
+          ></ion-input>
+        </ion-item>
+        <ion-button fill="solid" size="small" (click)="addTag()" aria-label="Ajouter">
+          <ion-icon name="add-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="section-card">
+      <div class="section-header-row">
+        <h2 class="section-title">Notes personnelles</h2>
+        <ion-button
+          fill="clear"
+          size="small"
+          *ngIf="!editingNotes"
+          (click)="startEditingNotes()"
+          aria-label="Modifier les notes"
+        >
+          <ion-icon name="create-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+        </ion-button>
+      </div>
+
+      <p
+        class="notes-text"
+        *ngIf="!editingNotes && userWord.notes"
+      >{{ userWord.notes }}</p>
+      <p class="no-content-text" *ngIf="!editingNotes && !userWord.notes">Aucune note pour l'instant.</p>
+
+      <div class="notes-editor" *ngIf="editingNotes">
+        <ion-textarea
+          [(ngModel)]="notesBuffer"
+          [rows]="5"
+          placeholder="Écrivez vos notes ici…"
+          maxlength="2000"
+          counter
+          aria-label="Notes personnelles"
+          class="notes-textarea"
+        ></ion-textarea>
+        <div class="editor-actions">
+          <ion-button fill="outline" size="small" (click)="cancelEditingNotes()">Annuler</ion-button>
+          <ion-button size="small" (click)="saveNotes()">Enregistrer</ion-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metadata -->
+    <div class="section-card meta-card">
+      <div class="meta-row">
+        <span class="meta-label">Première recherche</span>
+        <span class="meta-value">{{ userWord.firstSearchedAt | date:'d MMM yyyy':'':'fr' }}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Dernière recherche</span>
+        <span class="meta-value">{{ userWord.lastSearchedAt | date:'d MMM yyyy':'':'fr' }}</span>
+      </div>
+    </div>
+
+    <!-- Delete -->
+    <ion-button
+      expand="block"
+      fill="outline"
+      color="danger"
+      class="delete-btn"
+      (click)="confirmDelete()"
+      aria-label="Supprimer ce mot de mon dictionnaire"
+    >
+      <ion-icon name="trash-outline" slot="start" aria-hidden="true"></ion-icon>
+      Supprimer du dictionnaire
+    </ion-button>
+  </div>
+</ion-content>

@@ -9,29 +9,84 @@
  * https://ionicframework.com/docs/layout/global-stylesheets
  */
 
-/* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
-
-/* Basic CSS for apps built with Ionic */
 @import "@ionic/angular/css/normalize.css";
 @import "@ionic/angular/css/structure.css";
 @import "@ionic/angular/css/typography.css";
 @import "@ionic/angular/css/display.css";
-
-/* Optional CSS utils that can be commented out */
 @import "@ionic/angular/css/padding.css";
-@import "@ionic/angular/css/float-elements.css";
-@import "@ionic/angular/css/text-alignment.css";
-@import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
+// Dark mode driven by .ion-palette-dark class (toggled by ThemeService)
+@import "@ionic/angular/css/palettes/dark.class.css";
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import "@ionic/angular/css/palettes/dark.system.css";
+// Google Fonts — Inter (loaded via index.html)
+* {
+  font-family: var(--ion-font-family);
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
+
+// Smooth theme transitions
+body {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+// ion-header: subtle bottom shadow in light mode
+ion-header ion-toolbar:last-child {
+  --border-width: 0 0 0 0;
+  box-shadow: 0 1px 0 var(--ion-border-color);
+}
+
+.ion-palette-dark ion-header ion-toolbar:last-child {
+  box-shadow: 0 1px 0 var(--ion-border-color);
+}
+
+// Accessible focus ring
+:focus-visible {
+  outline: 2px solid var(--ion-color-primary);
+  outline-offset: 2px;
+}
+
+// ion-content smooth background
+ion-content {
+  --background: var(--ion-background-color);
+}
+
+// Tab bar subtle top border
+ion-tab-bar {
+  border-top: 1px solid var(--ion-tab-bar-border-color);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+// Searchbar pill style
+ion-searchbar {
+  --border-radius: 14px;
+  --box-shadow: none;
+  --background: var(--ion-color-light);
+  padding: 0 0.75rem 0.5rem !important;
+}
+
+// ion-item: remove default lines
+ion-item.settings-item,
+ion-item.form-item,
+ion-item.tag-input-item {
+  --inner-border-width: 0;
+  --border-width: 0;
+}
+
+// ion-badge
+ion-badge {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+// Skeleton animation softer
+ion-skeleton-text {
+  --border-radius: 6px;
+}
+
+// ion-toggle accent
+ion-toggle {
+  --track-background-checked: var(--ion-color-primary);
+}

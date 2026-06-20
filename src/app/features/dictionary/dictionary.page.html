@@ -1,0 +1,121 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Mon dictionnaire</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        (click)="toggleFavorites()"
+        [attr.aria-label]="showFavoritesOnly ? 'Afficher tous les mots' : 'Filtrer les favoris'"
+        [attr.aria-pressed]="showFavoritesOnly"
+      >
+        <ion-icon
+          slot="icon-only"
+          [name]="showFavoritesOnly ? 'star' : 'star-outline'"
+          [color]="showFavoritesOnly ? 'warning' : ''"
+          aria-hidden="true"
+        ></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      placeholder="Filtrer mes mots…"
+      debounce="400"
+      animated
+      show-clear-button="focus"
+      (ionChange)="onSearch($event)"
+      (ionClear)="clearSearch()"
+      aria-label="Filtrer les mots de mon dictionnaire"
+    ></ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Mon dictionnaire</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content
+      pulling-icon="chevron-down-circle-outline"
+      refreshing-spinner="crescent"
+    ></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Skeleton loading -->
+  <div class="word-list" *ngIf="isLoading" aria-busy="true" aria-live="polite">
+    <div class="word-card skeleton-card" *ngFor="let i of [1,2,3,4,5]">
+      <ion-skeleton-text animated class="skel-word"></ion-skeleton-text>
+      <ion-skeleton-text animated class="skel-pos"></ion-skeleton-text>
+      <ion-skeleton-text animated class="skel-def"></ion-skeleton-text>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div
+    class="empty-state"
+    *ngIf="!isLoading && words.length === 0"
+    aria-live="polite"
+  >
+    <div class="empty-icon" aria-hidden="true">
+      <ion-icon [name]="showFavoritesOnly ? 'star-outline' : 'book-outline'"></ion-icon>
+    </div>
+    <h2 class="empty-title">
+      {{ showFavoritesOnly ? 'Aucun favori' : 'Dictionnaire vide' }}
+    </h2>
+    <p class="empty-text">
+      {{ showFavoritesOnly
+        ? 'Marquez des mots comme favoris depuis la page de recherche.'
+        : 'Commencez par rechercher un mot dans l\'onglet Recherche.' }}
+    </p>
+  </div>
+
+  <!-- Word list -->
+  <div class="word-list" *ngIf="!isLoading && words.length > 0" role="list">
+    <button
+      class="word-card"
+      *ngFor="let entry of words"
+      (click)="openDetail(entry)"
+      role="listitem"
+      [attr.aria-label]="'Voir le mot ' + entry.wordId.word"
+    >
+      <div class="word-card-top">
+        <div class="word-card-left">
+          <h3 class="word-text">{{ entry.wordId.word }}</h3>
+          <span class="pos-chip" *ngIf="entry.wordId.definitions[0]?.partOfSpeech">
+            {{ entry.wordId.definitions[0].partOfSpeech }}
+          </span>
+        </div>
+        <div class="word-card-right">
+          <ion-icon
+            *ngIf="entry.favorite"
+            name="star"
+            color="warning"
+            class="fav-icon"
+            aria-label="Favori"
+          ></ion-icon>
+          <ion-icon name="chevron-forward-outline" color="medium" aria-hidden="true"></ion-icon>
+        </div>
+      </div>
+
+      <p class="word-preview" *ngIf="entry.wordId.definitions[0]?.definition">
+        {{ entry.wordId.definitions[0].definition | slice:0:100 }}{{ entry.wordId.definitions[0].definition.length > 100 ? '…' : '' }}
+      </p>
+
+      <div class="word-tags" *ngIf="entry.tags.length > 0">
+        <span class="tag-chip" *ngFor="let tag of entry.tags">{{ tag }}</span>
+      </div>
+    </button>
+  </div>
+
+  <ion-infinite-scroll
+    [disabled]="!hasMore"
+    (ionInfinite)="loadMore($event)"
+    threshold="100px"
+  >
+    <ion-infinite-scroll-content
+      loading-spinner="crescent"
+    ></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

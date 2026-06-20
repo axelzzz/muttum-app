@@ -1,0 +1,81 @@
+<ion-content class="auth-content" [fullscreen]="true">
+  <div class="auth-container">
+    <div class="auth-header">
+      <div class="auth-logo" aria-hidden="true">M</div>
+      <h1 class="auth-title">Muttum</h1>
+      <p class="auth-subtitle">Votre dictionnaire personnel</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form" novalidate>
+      <ion-item
+        class="form-item"
+        [class.ion-invalid]="emailControl.invalid && emailControl.touched"
+        lines="none"
+      >
+        <ion-label position="floating">Adresse e-mail</ion-label>
+        <ion-input
+          formControlName="email"
+          type="email"
+          autocomplete="email"
+          inputmode="email"
+          aria-label="Adresse e-mail"
+          aria-required="true"
+        ></ion-input>
+        <ion-note slot="error" *ngIf="emailControl.hasError('required')">
+          L'e-mail est requis.
+        </ion-note>
+        <ion-note slot="error" *ngIf="emailControl.hasError('email')">
+          Format d'e-mail invalide.
+        </ion-note>
+      </ion-item>
+
+      <ion-item
+        class="form-item"
+        [class.ion-invalid]="passwordControl.invalid && passwordControl.touched"
+        lines="none"
+      >
+        <ion-label position="floating">Mot de passe</ion-label>
+        <ion-input
+          formControlName="password"
+          [type]="isPasswordVisible ? 'text' : 'password'"
+          autocomplete="current-password"
+          aria-label="Mot de passe"
+          aria-required="true"
+        ></ion-input>
+        <ion-button
+          slot="end"
+          fill="clear"
+          size="small"
+          (click)="togglePasswordVisibility()"
+          [attr.aria-label]="isPasswordVisible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+          class="password-toggle"
+        >
+          <ion-icon [name]="isPasswordVisible ? 'eye-off-outline' : 'eye-outline'" aria-hidden="true"></ion-icon>
+        </ion-button>
+        <ion-note slot="error" *ngIf="passwordControl.hasError('required')">
+          Le mot de passe est requis.
+        </ion-note>
+        <ion-note slot="error" *ngIf="passwordControl.hasError('minlength')">
+          Minimum 6 caractères.
+        </ion-note>
+      </ion-item>
+
+      <ion-button
+        expand="block"
+        type="submit"
+        class="submit-btn"
+        [disabled]="form.invalid && form.touched"
+        aria-label="Se connecter"
+      >
+        Se connecter
+      </ion-button>
+    </form>
+
+    <div class="auth-footer">
+      <p class="auth-link-text">Pas encore de compte ?</p>
+      <ion-button fill="clear" routerLink="/auth/register" class="auth-link-btn">
+        Créer un compte
+      </ion-button>
+    </div>
+  </div>
+</ion-content>
