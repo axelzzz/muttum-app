@@ -60,10 +60,9 @@
         <div class="result-card" aria-live="polite">
           <div class="result-header">
             <div>
-              <h2 class="result-word">{{ word.wordId.word }}</h2>
+              <h2 class="result-word">{{ word.word }}</h2>
               <p class="result-meta">
-                Recherché {{ word.searchCount }} fois ·
-                <ion-badge color="light" class="source-badge">{{ word.wordId.source }}</ion-badge>
+                <ion-badge color="light" class="source-badge">{{ word.source }}</ion-badge>
               </p>
             </div>
             <ion-button fill="clear" (click)="openDetail(word)" aria-label="Voir les détails complets">
@@ -71,39 +70,31 @@
             </ion-button>
           </div>
 
-          @if (word.wordId.definitions.length > 0) {
+          @if ((word.definitions?.length ?? 0) > 0) {
             <div class="definitions-list">
-              @for (def of word.wordId.definitions; track def.definition; let i = $index) {
+              @for (def of word.definitions ?? []; track $index; let last = $last) {
                 <div class="definition-group">
                   @if (def.partOfSpeech) {
                     <span class="pos-chip">{{ def.partOfSpeech }}</span>
                   }
                   <p class="definition-text">{{ def.definition }}</p>
-                  @if (def.examples.length > 0) {
+                  @if ((def.examples?.length ?? 0) > 0) {
                     <ul class="examples-list">
-                      @for (ex of def.examples; track ex) {
+                      @for (ex of def.examples ?? []; track ex) {
                         <li class="example-item">{{ ex }}</li>
                       }
                     </ul>
                   }
-                  @if (i < word.wordId.definitions.length - 1) {
-                    <div class="definition-divider"></div>
-                  }
                 </div>
+                @if (!last) {
+                  <div class="definition-divider"></div>
+                }
               }
             </div>
           }
 
           <div class="result-actions">
-            <ion-chip
-              [color]="word.favorite ? 'warning' : 'medium'"
-              (click)="openDetail(word)"
-              [attr.aria-label]="word.favorite ? 'Favori' : 'Ajouter aux favoris'"
-            >
-              <ion-icon [name]="word.favorite ? 'star' : 'star-outline'" aria-hidden="true"></ion-icon>
-              <ion-label>Favori</ion-label>
-            </ion-chip>
-            <ion-chip color="medium" (click)="openDetail(word)" aria-label="Modifier">
+            <ion-chip color="medium" (click)="openDetail(word)" aria-label="Voir le détail, notes et tags">
               <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
               <ion-label>Notes &amp; tags</ion-label>
             </ion-chip>

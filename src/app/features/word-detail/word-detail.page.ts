@@ -19,8 +19,8 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { addOutline, chatbubbleOutline, closeOutline, createOutline, star, starOutline, trashOutline } from 'ionicons/icons';
-import { WordService } from '../../core/services/word.service';
-import { UserWordPopulated } from '../../core/models/word.model';
+import { WordsService } from '../../core/api/words/words.service';
+import { UserWord } from '../../core/api/model';
 
 @Component({
   selector: 'app-word-detail',
@@ -35,11 +35,11 @@ import { UserWordPopulated } from '../../core/models/word.model';
 export class WordDetailPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly wordService = inject(WordService);
+  private readonly wordService = inject(WordsService);
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
 
-  protected readonly userWord = signal<UserWordPopulated | null>(null);
+  protected readonly userWord = signal<UserWord | null>(null);
   protected readonly isLoading = signal(true);
   protected readonly editingNotes = signal(false);
   protected readonly notesBuffer = signal('');
@@ -51,10 +51,10 @@ export class WordDetailPage implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
-    this.wordService.getOne(id).subscribe({
+    this.wordService.getApiWordsId(id).subscribe({
       next: (data) => {
         this.userWord.set(data);
-        this.notesBuffer.set(data.notes);
+        this.notesBuffer.set(data.notes ?? '');
         this.isLoading.set(false);
       },
       error: () => {
@@ -67,7 +67,7 @@ export class WordDetailPage implements OnInit {
   protected toggleFavorite(): void {
     const word = this.userWord();
     if (!word) return;
-    this.wordService.update(word._id, { favorite: !word.favorite }).subscribe({
+    this.wordService.patchApiWordsId(word.id!, { favorite: !word.favorite }).subscribe({
       next: (updated) => this.userWord.set(updated),
     });
   }
@@ -80,7 +80,7 @@ export class WordDetailPage implements OnInit {
   protected saveNotes(): void {
     const word = this.userWord();
     if (!word) return;
-    this.wordService.update(word._id, { notes: this.notesBuffer() }).subscribe({
+    this.wordService.patchApiWordsId(word.id!, { notes: this.notesBuffer() }).subscribe({
       next: (updated) => {
         this.userWord.set(updated);
         this.editingNotes.set(false);
@@ -96,11 +96,11 @@ export class WordDetailPage implements OnInit {
   protected addTag(): void {
     const tag = this.newTag().trim();
     const word = this.userWord();
-    if (!tag || !word || word.tags.includes(tag)) {
+    if (!tag || !word || word.tags?.includes(tag)) {
       this.newTag.set('');
       return;
     }
-    this.wordService.update(word._id, { tags: [...word.tags, tag] }).subscribe({
+    this.wordService.patchApiWordsId(word.id!, { tags: [...(word.tags ?? []), tag] }).subscribe({
       next: (updated) => {
         this.userWord.set(updated);
         this.newTag.set('');
@@ -111,7 +111,7 @@ export class WordDetailPage implements OnInit {
   protected removeTag(tag: string): void {
     const word = this.userWord();
     if (!word) return;
-    this.wordService.update(word._id, { tags: word.tags.filter((t) => t !== tag) }).subscribe({
+    this.wordService.patchApiWordsId(word.id!, { tags: (word.tags ?? []).filter((t) => t !== tag) }).subscribe({
       next: (updated) => this.userWord.set(updated),
     });
   }
@@ -131,7 +131,7 @@ export class WordDetailPage implements OnInit {
   private deleteWord(): void {
     const word = this.userWord();
     if (!word) return;
-    this.wordService.remove(word._id).subscribe({
+    this.wordService.deleteApiWordsId(word.id!).subscribe({
       next: async () => {
         const toast = await this.toastCtrl.create({ message: 'Mot supprimé.', duration: 2000, color: 'success' });
         await toast.present();

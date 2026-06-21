@@ -73,18 +73,18 @@
 
   @if (!isLoading() && words().length > 0) {
     <div class="word-list" role="list">
-      @for (entry of words(); track entry._id) {
+      @for (entry of words(); track entry.id) {
         <button
           class="word-card"
           (click)="openDetail(entry)"
           role="listitem"
-          [attr.aria-label]="'Voir le mot ' + entry.wordId.word"
+          [attr.aria-label]="'Voir le mot ' + entry.word"
         >
           <div class="word-card-top">
             <div class="word-card-left">
-              <h3 class="word-text">{{ entry.wordId.word }}</h3>
-              @if (entry.wordId.definitions[0]?.partOfSpeech) {
-                <span class="pos-chip">{{ entry.wordId.definitions[0].partOfSpeech }}</span>
+              <h3 class="word-text">{{ entry.word }}</h3>
+              @if (entry.definitions?.[0]?.partOfSpeech; as pos) {
+                <span class="pos-chip">{{ pos }}</span>
               }
             </div>
             <div class="word-card-right">
@@ -95,9 +95,9 @@
             </div>
           </div>
 
-          @if (entry.wordId.definitions[0]?.definition) {
+          @if (entry.definitions?.[0]?.definition; as preview) {
             <p class="word-preview">
-              {{ entry.wordId.definitions[0].definition.slice(0, 100) }}{{ entry.wordId.definitions[0].definition.length > 100 ? '…' : '' }}
+              {{ preview.slice(0, 100) }}{{ preview.length > 100 ? '…' : '' }}
             </p>
           }
 

@@ -16,8 +16,8 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { createOutline, helpCircleOutline, openOutline, searchOutline, star, starOutline } from 'ionicons/icons';
-import { WordService } from '../../core/services/word.service';
-import { UserWordPopulated } from '../../core/models/word.model';
+import { WordsService } from '../../core/api/words/words.service';
+import { SearchResult } from '../../core/api/model';
 
 @Component({
   selector: 'app-search',
@@ -29,12 +29,12 @@ import { UserWordPopulated } from '../../core/models/word.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchPage {
-  private readonly wordService = inject(WordService);
+  private readonly wordService = inject(WordsService);
   private readonly toastCtrl = inject(ToastController);
   private readonly router = inject(Router);
 
   protected readonly isLoading = signal(false);
-  protected readonly result = signal<UserWordPopulated | null>(null);
+  protected readonly result = signal<SearchResult | null>(null);
   protected readonly notFound = signal(false);
   protected readonly lastQuery = signal('');
 
@@ -51,7 +51,7 @@ export class SearchPage {
     this.result.set(null);
     this.notFound.set(false);
 
-    this.wordService.search(query).subscribe({
+    this.wordService.getApiWordsSearch({ word: query }).subscribe({
       next: (userWord) => {
         this.isLoading.set(false);
         this.result.set(userWord);
@@ -78,7 +78,7 @@ export class SearchPage {
     this.lastQuery.set('');
   }
 
-  protected openDetail(userWord: UserWordPopulated): void {
-    this.router.navigate(['/word', userWord._id]);
+  protected openDetail(result: SearchResult): void {
+    this.router.navigate(['/word', result.id]);
   }
 }

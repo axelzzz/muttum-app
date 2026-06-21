@@ -18,8 +18,8 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { bookOutline, chevronForwardOutline, star, starOutline } from 'ionicons/icons';
-import { WordService } from '../../core/services/word.service';
-import { UserWordPopulated } from '../../core/models/word.model';
+import { WordsService } from '../../core/api/words/words.service';
+import { UserWord } from '../../core/api/model';
 
 const PAGE_SIZE = 20;
 
@@ -34,10 +34,10 @@ const PAGE_SIZE = 20;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DictionaryPage implements OnInit {
-  private readonly wordService = inject(WordService);
+  private readonly wordService = inject(WordsService);
   private readonly router = inject(Router);
 
-  protected readonly words = signal<UserWordPopulated[]>([]);
+  protected readonly words = signal<UserWord[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly hasMore = signal(true);
   protected readonly showFavoritesOnly = signal(false);
@@ -90,8 +90,8 @@ export class DictionaryPage implements OnInit {
     this.loadWords(false, undefined, event);
   }
 
-  protected openDetail(userWord: UserWordPopulated): void {
-    this.router.navigate(['/word', userWord._id]);
+  protected openDetail(userWord: UserWord): void {
+    this.router.navigate(['/word', userWord.id]);
   }
 
   private loadWords(
@@ -107,11 +107,11 @@ export class DictionaryPage implements OnInit {
     };
     if (this.searchQuery) query.search = this.searchQuery;
 
-    this.wordService.list(query).subscribe({
-      next: ({ data = [], total }) => {
-        const filtered = this.showFavoritesOnly() ? data.filter((w) => w.favorite) : data;
+    this.wordService.getApiWords(query).subscribe({
+      next: ({ items = [], pagination }) => {
+        const filtered = this.showFavoritesOnly() ? items.filter((w) => w.favorite) : items;
         this.words.set(showSpinner ? filtered : [...this.words(), ...filtered]);
-        this.hasMore.set(this.words().length < total && data.length === PAGE_SIZE);
+        this.hasMore.set(this.words().length < (pagination?.total ?? 0) && items.length === PAGE_SIZE);
         this.isLoading.set(false);
         refreshEvent?.detail?.complete?.();
         infiniteEvent?.target?.complete();
