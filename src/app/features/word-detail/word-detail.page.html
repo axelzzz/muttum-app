@@ -74,75 +74,18 @@
 
       <div class="section-card">
         <h2 class="section-title">Tags</h2>
-        @if ((word.tags?.length ?? 0) > 0) {
-          <div class="tags-container">
-            @for (tag of word.tags ?? []; track tag) {
-              <button
-                class="tag-chip removable"
-                (click)="removeTag(tag)"
-                [attr.aria-label]="'Supprimer le tag ' + tag"
-              >
-                {{ tag }}
-                <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
-              </button>
-            }
-          </div>
-        }
-        @if ((word.tags?.length ?? 0) === 0) {
-          <p class="no-content-text">Aucun tag pour l'instant.</p>
-        }
-        <div class="tag-input-row">
-          <ion-item class="tag-input-item" lines="none">
-            <ion-input
-              [value]="newTag()"
-              (ionInput)="onNewTagInput($any($event))"
-              placeholder="Ajouter un tag…"
-              (keyup.enter)="addTag()"
-              maxlength="30"
-              aria-label="Nouveau tag"
-            ></ion-input>
-          </ion-item>
-          <ion-button fill="solid" size="small" (click)="addTag()" aria-label="Ajouter">
-            <ion-icon name="add-outline" slot="icon-only" aria-hidden="true"></ion-icon>
-          </ion-button>
-        </div>
+        <app-tags-editor
+          [tags]="word.tags ?? []"
+          (addTag)="onAddTag($event)"
+          (removeTag)="onRemoveTag($event)"
+        ></app-tags-editor>
       </div>
 
       <div class="section-card">
-        <div class="section-header-row">
-          <h2 class="section-title">Notes personnelles</h2>
-          @if (!editingNotes()) {
-            <ion-button fill="clear" size="small" (click)="startEditingNotes()" aria-label="Modifier les notes">
-              <ion-icon name="create-outline" slot="icon-only" aria-hidden="true"></ion-icon>
-            </ion-button>
-          }
-        </div>
-
-        @if (!editingNotes() && word.notes) {
-          <p class="notes-text">{{ word.notes }}</p>
-        }
-        @if (!editingNotes() && !word.notes) {
-          <p class="no-content-text">Aucune note pour l'instant.</p>
-        }
-
-        @if (editingNotes()) {
-          <div class="notes-editor">
-            <ion-textarea
-              [value]="notesBuffer()"
-              (ionInput)="onNotesInput($any($event))"
-              [rows]="5"
-              placeholder="Écrivez vos notes ici…"
-              maxlength="2000"
-              counter
-              aria-label="Notes personnelles"
-              class="notes-textarea"
-            ></ion-textarea>
-            <div class="editor-actions">
-              <ion-button fill="outline" size="small" (click)="cancelEditingNotes()">Annuler</ion-button>
-              <ion-button size="small" (click)="saveNotes()">Enregistrer</ion-button>
-            </div>
-          </div>
-        }
+        <app-notes-editor
+          [notes]="word.notes ?? ''"
+          (save)="onSaveNotes($event)"
+        ></app-notes-editor>
       </div>
 
       <div class="section-card meta-card">

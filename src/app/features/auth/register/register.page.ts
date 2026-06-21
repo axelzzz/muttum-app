@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import {
   IonButton,
   IonContent,
@@ -9,12 +10,11 @@ import {
   IonItem,
   IonLabel,
   IonNote,
-  LoadingController,
-  ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
 import { AuthService } from '../../../core/services/auth.service';
+import { UiService } from '../../../ui/ui.service';
 
 function passwordMatchValidator(group: AbstractControl): ValidationErrors | null {
   const password = group.get('password')?.value;
@@ -32,8 +32,7 @@ export class RegisterPage {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly loadingCtrl = inject(LoadingController);
-  private readonly toastCtrl = inject(ToastController);
+  private readonly ui = inject(UiService);
 
   protected readonly isPasswordVisible = signal(false);
 
@@ -66,27 +65,23 @@ export class RegisterPage {
       return;
     }
 
-    const loading = await this.loadingCtrl.create({ message: 'Création du compte…' });
-    await loading.present();
-
-    const { confirmPassword: _, ...payload } = this.form.value as {
-      username: string;
-      email: string;
-      password: string;
-      confirmPassword: string;
-    };
-    this.authService.register(payload).subscribe({
-      next: async () => {
-        await loading.dismiss();
-        await this.router.navigate(['/tabs/search']);
-      },
-      error: async (err) => {
-        await loading.dismiss();
-        const message =
-          err.status === 409 ? 'Cet e-mail est déjà utilisé.' : 'Une erreur est survenue.';
-        const toast = await this.toastCtrl.create({ message, duration: 3000, color: 'danger', position: 'bottom' });
-        await toast.present();
-      },
-    });
+    const loading = await this.ui.showLoading('Création du compte…');
+    try {
+      const { confirmPassword: _, ...payload } = this.form.value as {
+        username: string;
+        email: string;
+        password: string;
+        confirmPassword: string;
+      };
+      await firstValueFrom(this.authService.register(payload));
+      await this.router.navigate(['/tabs/search']);
+    } catch (err: unknown) {
+      const message = (err as { status?: number }).status === 409
+        ? 'Cet e-mail est déjà utilisé.'
+        : 'Une erreur est survenue.';
+      await this.ui.showToast(message);
+    } finally {
+      await loading.dismiss();
+    }
   }
 }

@@ -1,0 +1,32 @@
+@if (tags().length > 0) {
+  <div class="container">
+    @for (tag of tags(); track tag) {
+      <button
+        class="chip"
+        (click)="removeTag.emit(tag)"
+        [attr.aria-label]="'Supprimer le tag ' + tag"
+      >
+        {{ tag }}
+        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      </button>
+    }
+  </div>
+} @else {
+  <p class="empty">Aucun tag pour l'instant.</p>
+}
+
+<div class="input-row">
+  <ion-item class="input-item" lines="none">
+    <ion-input
+      [value]="newTag()"
+      (ionInput)="onInput($any($event))"
+      placeholder="Ajouter un tag…"
+      (keyup.enter)="onAddTag()"
+      maxlength="30"
+      aria-label="Nouveau tag"
+    ></ion-input>
+  </ion-item>
+  <ion-button fill="solid" size="small" (click)="onAddTag()" aria-label="Ajouter">
+    <ion-icon name="add-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+  </ion-button>
+</div>

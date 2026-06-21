@@ -15,7 +15,7 @@ export class AuthService {
   private readonly _currentUser = signal<User | null>(this.loadStoredUser());
 
   readonly currentUser = this._currentUser.asReadonly();
-  readonly isAuthenticated = computed(() => !!this.getToken());
+  readonly isAuthenticated = computed(() => this._currentUser() !== null);
 
   register(payload: RegisterPayload): Observable<AuthResponse> {
     return this.http

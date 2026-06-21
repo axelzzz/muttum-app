@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import {
-  AlertController,
   IonContent,
   IonHeader,
   IonIcon,
@@ -17,6 +16,7 @@ import { addIcons } from 'ionicons';
 import { calendarOutline, logOutOutline, mailOutline, moonOutline, personOutline } from 'ionicons/icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { UiService } from '../../ui/ui.service';
 
 @Component({
   selector: 'app-profile',
@@ -31,7 +31,7 @@ import { ThemeService } from '../../core/services/theme.service';
 export class ProfilePage {
   private readonly authService = inject(AuthService);
   private readonly themeService = inject(ThemeService);
-  private readonly alertCtrl = inject(AlertController);
+  private readonly ui = inject(UiService);
   private readonly router = inject(Router);
 
   protected readonly user = this.authService.currentUser;
@@ -46,19 +46,14 @@ export class ProfilePage {
   }
 
   protected async confirmLogout(): Promise<void> {
-    const alert = await this.alertCtrl.create({
-      header: 'Se déconnecter ?',
-      message: 'Vous devrez vous reconnecter pour accéder à votre dictionnaire.',
-      buttons: [
-        { text: 'Annuler', role: 'cancel' },
-        { text: 'Déconnexion', role: 'destructive', handler: () => this.logout() },
-      ],
-    });
-    await alert.present();
-  }
-
-  private async logout(): Promise<void> {
-    this.authService.logout();
-    await this.router.navigate(['/auth/login']);
+    const confirmed = await this.ui.confirmAction(
+      'Se déconnecter ?',
+      'Vous devrez vous reconnecter pour accéder à votre dictionnaire.',
+      'Déconnexion'
+    );
+    if (confirmed) {
+      this.authService.logout();
+      await this.router.navigate(['/auth/login']);
+    }
   }
 }

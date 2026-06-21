@@ -19,9 +19,10 @@ import {
 import { addIcons } from 'ionicons';
 import { bookOutline, chevronForwardOutline, star, starOutline } from 'ionicons/icons';
 import { WordsService } from '../../core/api/words/words.service';
-import { UserWord } from '../../core/api/model';
+import { GetApiWordsParams, UserWord } from '../../core/api/model';
 
 const PAGE_SIZE = 20;
+const FAVORITES_MAX_LIMIT = 500;
 
 @Component({
   selector: 'app-dictionary',
@@ -54,35 +55,26 @@ export class DictionaryPage implements OnInit {
   }
 
   ionViewWillEnter(): void {
-    this.refresh();
+    this.resetAndLoad();
   }
 
   protected refresh(event?: CustomEvent): void {
-    this.currentPage = 1;
-    this.words.set([]);
-    this.hasMore.set(true);
-    this.loadWords(true, event);
+    this.resetAndLoad(event);
   }
 
   protected onSearch(event: CustomEvent): void {
     this.searchQuery = (event.detail.value as string | undefined)?.trim() ?? '';
-    this.currentPage = 1;
-    this.words.set([]);
-    this.hasMore.set(true);
-    this.loadWords(true);
+    this.resetAndLoad();
   }
 
   protected clearSearch(): void {
     this.searchQuery = '';
-    this.refresh();
+    this.resetAndLoad();
   }
 
   protected toggleFavorites(): void {
     this.showFavoritesOnly.update(v => !v);
-    this.currentPage = 1;
-    this.words.set([]);
-    this.hasMore.set(true);
-    this.loadWords(true);
+    this.resetAndLoad();
   }
 
   protected loadMore(event: InfiniteScrollCustomEvent): void {
@@ -94,6 +86,24 @@ export class DictionaryPage implements OnInit {
     this.router.navigate(['/word', userWord.id]);
   }
 
+  private resetAndLoad(refreshEvent?: CustomEvent): void {
+    this.currentPage = 1;
+    this.words.set([]);
+    this.hasMore.set(true);
+    this.loadWords(true, refreshEvent);
+  }
+
+  private buildQuery(): GetApiWordsParams {
+    if (this.showFavoritesOnly()) {
+      return { limit: FAVORITES_MAX_LIMIT };
+    }
+    return {
+      page: this.currentPage,
+      limit: PAGE_SIZE,
+      ...(this.searchQuery && { search: this.searchQuery }),
+    };
+  }
+
   private loadWords(
     showSpinner: boolean,
     refreshEvent?: CustomEvent,
@@ -101,17 +111,16 @@ export class DictionaryPage implements OnInit {
   ): void {
     if (showSpinner) this.isLoading.set(true);
 
-    const query: { page: number; limit: number; search?: string } = {
-      page: this.currentPage,
-      limit: PAGE_SIZE,
-    };
-    if (this.searchQuery) query.search = this.searchQuery;
+    const isFavoritesMode = this.showFavoritesOnly();
 
-    this.wordService.getApiWords(query).subscribe({
+    this.wordService.getApiWords(this.buildQuery()).subscribe({
       next: ({ items = [], pagination }) => {
-        const filtered = this.showFavoritesOnly() ? items.filter((w) => w.favorite) : items;
-        this.words.set(showSpinner ? filtered : [...this.words(), ...filtered]);
-        this.hasMore.set(this.words().length < (pagination?.total ?? 0) && items.length === PAGE_SIZE);
+        const filtered = isFavoritesMode ? items.filter(w => w.favorite) : items;
+        const updated = showSpinner ? filtered : [...this.words(), ...filtered];
+        this.words.set(updated);
+        this.hasMore.set(
+          !isFavoritesMode && updated.length < (pagination?.total ?? 0) && items.length === PAGE_SIZE
+        );
         this.isLoading.set(false);
         refreshEvent?.detail?.complete?.();
         infiniteEvent?.target?.complete();

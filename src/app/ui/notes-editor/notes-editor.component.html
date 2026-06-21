@@ -1,0 +1,33 @@
+<div class="header">
+  <span class="title">Notes personnelles</span>
+  @if (!isEditing()) {
+    <ion-button fill="clear" size="small" (click)="startEditing()" aria-label="Modifier les notes">
+      <ion-icon name="create-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+    </ion-button>
+  }
+</div>
+
+@if (!isEditing()) {
+  @if (notes()) {
+    <p class="content">{{ notes() }}</p>
+  } @else {
+    <p class="empty">Aucune note pour l'instant.</p>
+  }
+}
+
+@if (isEditing()) {
+  <ion-textarea
+    [value]="buffer()"
+    (ionInput)="onInput($any($event))"
+    [rows]="5"
+    placeholder="Écrivez vos notes ici…"
+    maxlength="2000"
+    counter
+    aria-label="Notes personnelles"
+    class="textarea"
+  ></ion-textarea>
+  <div class="actions">
+    <ion-button fill="outline" size="small" (click)="cancelEditing()">Annuler</ion-button>
+    <ion-button size="small" (click)="confirmSave()">Enregistrer</ion-button>
+  </div>
+}

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import {
   IonButton,
   IonContent,
@@ -9,12 +10,11 @@ import {
   IonItem,
   IonLabel,
   IonNote,
-  LoadingController,
-  ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
 import { AuthService } from '../../../core/services/auth.service';
+import { UiService } from '../../../ui/ui.service';
 
 @Component({
   selector: 'app-login',
@@ -26,8 +26,7 @@ export class LoginPage {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly loadingCtrl = inject(LoadingController);
-  private readonly toastCtrl = inject(ToastController);
+  private readonly ui = inject(UiService);
 
   protected readonly isPasswordVisible = signal(false);
 
@@ -53,21 +52,17 @@ export class LoginPage {
       return;
     }
 
-    const loading = await this.loadingCtrl.create({ message: 'Connexion…' });
-    await loading.present();
-
-    this.authService.login(this.form.value as { email: string; password: string }).subscribe({
-      next: async () => {
-        await loading.dismiss();
-        await this.router.navigate(['/tabs/search']);
-      },
-      error: async (err) => {
-        await loading.dismiss();
-        const message =
-          err.status === 401 ? 'Email ou mot de passe incorrect.' : 'Une erreur est survenue.';
-        const toast = await this.toastCtrl.create({ message, duration: 3000, color: 'danger', position: 'bottom' });
-        await toast.present();
-      },
-    });
+    const loading = await this.ui.showLoading('Connexion…');
+    try {
+      await firstValueFrom(this.authService.login(this.form.value as { email: string; password: string }));
+      await this.router.navigate(['/tabs/search']);
+    } catch (err: unknown) {
+      const message = (err as { status?: number }).status === 401
+        ? 'Email ou mot de passe incorrect.'
+        : 'Une erreur est survenue.';
+      await this.ui.showToast(message);
+    } finally {
+      await loading.dismiss();
+    }
   }
 }
