@@ -62,6 +62,13 @@
   --min-height: 60px;
   border-radius: 14px;
   overflow: hidden;
+  outline: 2px solid transparent;
+  outline-offset: 0;
+  transition: outline-color 0.15s ease;
+
+  &:focus-within {
+    outline-color: var(--ion-color-primary);
+  }
 }
 
 .password-toggle {

@@ -46,12 +46,13 @@
   --ion-color-danger-shade: #d23c3c;
   --ion-color-danger-tint: #f15757;
 
-  --ion-color-medium: #64748b;
-  --ion-color-medium-rgb: 100, 116, 139;
+  // Slate 600 → 6.98:1 on #f1f5f9 (was #64748b = 4.33:1, RGAA 3.2 blocker)
+  --ion-color-medium: #475569;
+  --ion-color-medium-rgb: 71, 85, 105;
   --ion-color-medium-contrast: #ffffff;
   --ion-color-medium-contrast-rgb: 255, 255, 255;
-  --ion-color-medium-shade: #58657a;
-  --ion-color-medium-tint: #748297;
+  --ion-color-medium-shade: #3e4b5e;
+  --ion-color-medium-tint: #586678;
 
   --ion-color-light: #f1f5f9;
   --ion-color-light-rgb: 241, 245, 249;

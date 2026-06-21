@@ -42,10 +42,18 @@ ion-header ion-toolbar:last-child {
   box-shadow: 0 1px 0 var(--ion-border-color);
 }
 
-// Accessible focus ring
+// Accessible focus ring (RGAA 10.7 / WCAG 2.4.7)
 :focus-visible {
   outline: 2px solid var(--ion-color-primary);
   outline-offset: 2px;
+}
+
+// Respect prefers-reduced-motion (RGAA 10.3 / WCAG 2.3.3)
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 // ion-content smooth background

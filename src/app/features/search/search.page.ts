@@ -4,11 +4,9 @@ import { EMPTY, catchError, tap } from 'rxjs';
 import {
   IonBadge,
   IonButton,
-  IonChip,
   IonContent,
   IonHeader,
   IonIcon,
-  IonLabel,
   IonSearchbar,
   IonSkeletonText,
   IonTitle,
@@ -25,7 +23,7 @@ import { UiService } from '../../ui/ui.service';
   templateUrl: './search.page.html',
   imports: [
     IonHeader, IonToolbar, IonTitle, IonSearchbar, IonContent,
-    IonSkeletonText, IonBadge, IonButton, IonIcon, IonChip, IonLabel,
+    IonSkeletonText, IonBadge, IonButton, IonIcon,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

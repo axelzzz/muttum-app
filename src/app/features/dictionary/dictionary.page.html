@@ -44,15 +44,17 @@
   </ion-refresher>
 
   @if (isLoading()) {
-    <div class="word-list" aria-busy="true" aria-live="polite">
+    <ul class="word-list" aria-busy="true" aria-live="polite">
       @for (i of [1, 2, 3, 4, 5]; track i) {
-        <div class="word-card skeleton-card">
-          <ion-skeleton-text animated class="skel-word"></ion-skeleton-text>
-          <ion-skeleton-text animated class="skel-pos"></ion-skeleton-text>
-          <ion-skeleton-text animated class="skel-def"></ion-skeleton-text>
-        </div>
+        <li class="word-item">
+          <div class="word-card skeleton-card">
+            <ion-skeleton-text animated class="skel-word"></ion-skeleton-text>
+            <ion-skeleton-text animated class="skel-pos"></ion-skeleton-text>
+            <ion-skeleton-text animated class="skel-def"></ion-skeleton-text>
+          </div>
+        </li>
       }
-    </div>
+    </ul>
   }
 
   @if (!isLoading() && words().length === 0) {
@@ -72,45 +74,47 @@
   }
 
   @if (!isLoading() && words().length > 0) {
-    <div class="word-list" role="list">
+    <ul class="word-list">
       @for (entry of words(); track entry.id) {
-        <button
-          class="word-card"
-          (click)="openDetail(entry)"
-          role="listitem"
-          [attr.aria-label]="'Voir le mot ' + entry.word"
-        >
-          <div class="word-card-top">
-            <div class="word-card-left">
-              <h3 class="word-text">{{ entry.word }}</h3>
-              @if (entry.definitions?.[0]?.partOfSpeech; as pos) {
-                <span class="pos-chip">{{ pos }}</span>
-              }
+        <li class="word-item">
+          <button
+            class="word-card"
+            [class.word-card--favorite]="entry.favorite"
+            (click)="openDetail(entry)"
+            [attr.aria-label]="'Voir le mot ' + entry.word"
+          >
+            <div class="word-card-top">
+              <div class="word-card-left">
+                <h3 class="word-text">{{ entry.word }}</h3>
+                @if (entry.definitions?.[0]?.partOfSpeech; as pos) {
+                  <span class="pos-chip">{{ pos }}</span>
+                }
+              </div>
+              <div class="word-card-right">
+                @if (entry.favorite) {
+                  <ion-icon name="star" color="warning" class="fav-icon" aria-label="Favori"></ion-icon>
+                }
+                <ion-icon name="chevron-forward-outline" color="medium" aria-hidden="true"></ion-icon>
+              </div>
             </div>
-            <div class="word-card-right">
-              @if (entry.favorite) {
-                <ion-icon name="star" color="warning" class="fav-icon" aria-label="Favori"></ion-icon>
-              }
-              <ion-icon name="chevron-forward-outline" color="medium" aria-hidden="true"></ion-icon>
-            </div>
-          </div>
 
-          @if (entry.definitions?.[0]?.definition; as preview) {
-            <p class="word-preview">
-              {{ preview.slice(0, 100) }}{{ preview.length > 100 ? '…' : '' }}
-            </p>
-          }
+            @if (entry.definitions?.[0]?.definition; as preview) {
+              <p class="word-preview">
+                {{ preview.slice(0, 100) }}{{ preview.length > 100 ? '…' : '' }}
+              </p>
+            }
 
-          @if (entry.tags?.length) {
-            <div class="word-tags">
-              @for (tag of entry.tags; track tag) {
-                <span class="tag-chip">{{ tag }}</span>
-              }
-            </div>
-          }
-        </button>
+            @if (entry.tags?.length) {
+              <div class="word-tags">
+                @for (tag of entry.tags; track tag) {
+                  <span class="tag-chip">{{ tag }}</span>
+                }
+              </div>
+            }
+          </button>
+        </li>
       }
-    </div>
+    </ul>
   }
 
   <ion-infinite-scroll

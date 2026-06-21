@@ -26,8 +26,10 @@
 <ion-content [fullscreen]="true">
   @if (isLoading()) {
     <div class="detail-body" aria-busy="true">
-      <ion-skeleton-text animated class="skel-title"></ion-skeleton-text>
-      <ion-skeleton-text animated class="skel-meta"></ion-skeleton-text>
+      <div class="word-hero">
+        <ion-skeleton-text animated class="skel-title"></ion-skeleton-text>
+        <ion-skeleton-text animated class="skel-meta"></ion-skeleton-text>
+      </div>
       <div class="section-card">
         @for (i of [1, 2, 3]; track i) {
           <ion-skeleton-text animated class="skel-line"></ion-skeleton-text>
@@ -41,35 +43,33 @@
       <div class="word-hero">
         <h1 class="hero-word">{{ word.word }}</h1>
         <div class="hero-meta">
+          @if (word.definitions?.[0]?.partOfSpeech; as pos) {
+            <span class="hero-pos">{{ pos }}</span>
+            <span class="meta-sep" aria-hidden="true">·</span>
+          }
           <span class="meta-text">{{ word.searchCount }} recherche{{ (word.searchCount ?? 0) > 1 ? 's' : '' }}</span>
         </div>
       </div>
 
       <div class="section-card">
         <h2 class="section-title">Définitions</h2>
-        <div class="definitions-list">
-          @for (def of word.definitions ?? []; track $index; let i = $index) {
-            <div class="definition-entry">
-              <div class="entry-header">
-                <span class="entry-number" aria-hidden="true">{{ i + 1 }}</span>
-                @if (def.partOfSpeech) {
-                  <span class="pos-label">{{ def.partOfSpeech }}</span>
-                }
-              </div>
+        <ol class="definitions-list">
+          @for (def of word.definitions ?? []; track $index) {
+            <li class="definition-entry">
+              @if (def.partOfSpeech) {
+                <span class="pos-label">{{ def.partOfSpeech }}</span>
+              }
               <p class="entry-def">{{ def.definition }}</p>
               @if ((def.examples?.length ?? 0) > 0) {
                 <ul class="examples-list">
                   @for (ex of def.examples ?? []; track ex) {
-                    <li class="example-item">
-                      <ion-icon name="chatbubble-outline" aria-hidden="true" class="ex-icon"></ion-icon>
-                      {{ ex }}
-                    </li>
+                    <li class="example-item">{{ ex }}</li>
                   }
                 </ul>
               }
-            </div>
+            </li>
           }
-        </div>
+        </ol>
       </div>
 
       <div class="section-card">
@@ -88,7 +88,7 @@
         ></app-notes-editor>
       </div>
 
-      <div class="section-card meta-card">
+      <div class="meta-rows">
         <div class="meta-row">
           <span class="meta-label">Première recherche</span>
           <span class="meta-value">{{ word.firstSearchedAt | date:'d MMM yyyy':'':'fr' }}</span>
@@ -101,7 +101,7 @@
 
       <ion-button
         expand="block"
-        fill="outline"
+        fill="clear"
         color="danger"
         class="delete-btn"
         (click)="confirmDelete()"
