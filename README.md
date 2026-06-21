@@ -78,6 +78,45 @@ The API always returns `UserWordPopulated` (with `wordId` resolved to a full `Wo
 - Ionic CSS variables: `src/theme/variables.scss`
 - Dark mode is toggled by adding the `ion-palette-dark` class to `<html>` — the `ThemeService` owns that toggle.
 
+## Docker
+
+The production image is a two-stage build: Angular is compiled by Node, then the `www/` output is served by Nginx. Nginx also proxies `/api/*` to the backend container — this is why `environment.prod.ts` uses a relative path (`/api`) rather than `http://localhost:3000`.
+
+```
+[Browser]
+    ↓
+[Nginx :80]
+  ├── /*     → static Angular build (www/)
+  └── /api/* → proxy → [backend :3000]
+                              ↓
+                        [MongoDB :27017]
+```
+
+**Build the image standalone:**
+
+```bash
+docker build -t muttum-frontend .
+docker run -p 80:80 muttum-frontend
+```
+
+**Run the full stack** (frontend + backend + MongoDB + Portainer) from the `projets/` parent directory:
+
+```bash
+cp ../.env.example ../.env
+# edit ../.env — set JWT_SECRET at minimum
+docker compose up --build
+```
+
+| URL | Service |
+|---|---|
+| `http://localhost` | Application |
+| `http://localhost:9000` | Portainer (container management UI) |
+
+Key files:
+- `Dockerfile` — multi-stage build (Node builder → Nginx)
+- `nginx.conf` — SPA fallback + `/api/` reverse proxy to `backend:3000`
+- `.dockerignore` — excludes `node_modules`, `www/`, `.angular/`
+
 ## Native build (Capacitor)
 
 `www/` is the web output directory used by native builds.
