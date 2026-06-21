@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { catchError, finalize, switchMap, tap } from 'rxjs';
 import {
   IonButton,
   IonContent,
@@ -59,29 +59,32 @@ export class RegisterPage {
     this.isPasswordVisible.update(v => !v);
   }
 
-  protected async submit(): Promise<void> {
+  protected submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    const loading = await this.ui.showLoading('Création du compte…');
-    try {
-      const { confirmPassword: _, ...payload } = this.form.value as {
-        username: string;
-        email: string;
-        password: string;
-        confirmPassword: string;
-      };
-      await firstValueFrom(this.authService.register(payload));
-      await this.router.navigate(['/tabs/search']);
-    } catch (err: unknown) {
-      const message = (err as { status?: number }).status === 409
-        ? 'Cet e-mail est déjà utilisé.'
-        : 'Une erreur est survenue.';
-      await this.ui.showToast(message);
-    } finally {
-      await loading.dismiss();
-    }
+    const { confirmPassword: _, ...payload } = this.form.value as {
+      username: string;
+      email: string;
+      password: string;
+      confirmPassword: string;
+    };
+
+    this.ui.showLoading('Création du compte…').pipe(
+      switchMap(loading =>
+        this.authService.register(payload).pipe(
+          tap(() => this.router.navigate(['/tabs/search'])),
+          catchError((err: unknown) => {
+            const message = (err as { status?: number }).status === 409
+              ? 'Cet e-mail est déjà utilisé.'
+              : 'Une erreur est survenue.';
+            return this.ui.showToast(message);
+          }),
+          finalize(() => loading.dismiss())
+        )
+      )
+    ).subscribe();
   }
 }

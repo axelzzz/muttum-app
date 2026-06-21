@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { EMPTY, catchError, tap } from 'rxjs';
 import {
   IonBadge,
   IonButton,
@@ -12,12 +13,12 @@ import {
   IonSkeletonText,
   IonTitle,
   IonToolbar,
-  ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { createOutline, helpCircleOutline, openOutline, searchOutline, star, starOutline } from 'ionicons/icons';
 import { WordsService } from '../../core/api/words/words.service';
 import { SearchResult } from '../../core/api/model';
+import { UiService } from '../../ui/ui.service';
 
 @Component({
   selector: 'app-search',
@@ -30,7 +31,7 @@ import { SearchResult } from '../../core/api/model';
 })
 export class SearchPage {
   private readonly wordService = inject(WordsService);
-  private readonly toastCtrl = inject(ToastController);
+  private readonly ui = inject(UiService);
   private readonly router = inject(Router);
 
   protected readonly isLoading = signal(false);
@@ -42,7 +43,7 @@ export class SearchPage {
     addIcons({ searchOutline, helpCircleOutline, openOutline, star, starOutline, createOutline });
   }
 
-  protected async search(event: CustomEvent): Promise<void> {
+  protected search(event: CustomEvent): void {
     const query = (event.detail.value as string | undefined)?.trim() ?? '';
     if (!query || query === this.lastQuery()) return;
 
@@ -51,25 +52,20 @@ export class SearchPage {
     this.result.set(null);
     this.notFound.set(false);
 
-    this.wordService.getApiWordsSearch({ word: query }).subscribe({
-      next: (userWord) => {
+    this.wordService.getApiWordsSearch({ word: query }).pipe(
+      tap(userWord => {
         this.isLoading.set(false);
         this.result.set(userWord);
-      },
-      error: async (err) => {
+      }),
+      catchError((err: { status?: number }) => {
         this.isLoading.set(false);
         if (err.status === 404) {
           this.notFound.set(true);
-          return;
+          return EMPTY;
         }
-        const toast = await this.toastCtrl.create({
-          message: 'Impossible de contacter le dictionnaire.',
-          duration: 3000,
-          color: 'danger',
-        });
-        await toast.present();
-      },
-    });
+        return this.ui.showToast('Impossible de contacter le dictionnaire.');
+      })
+    ).subscribe();
   }
 
   protected clearSearch(): void {

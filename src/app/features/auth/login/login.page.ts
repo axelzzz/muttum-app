@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { catchError, finalize, switchMap, tap } from 'rxjs';
 import {
   IonButton,
   IonContent,
@@ -46,23 +46,25 @@ export class LoginPage {
     this.isPasswordVisible.update(v => !v);
   }
 
-  protected async submit(): Promise<void> {
+  protected submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    const loading = await this.ui.showLoading('Connexion…');
-    try {
-      await firstValueFrom(this.authService.login(this.form.value as { email: string; password: string }));
-      await this.router.navigate(['/tabs/search']);
-    } catch (err: unknown) {
-      const message = (err as { status?: number }).status === 401
-        ? 'Email ou mot de passe incorrect.'
-        : 'Une erreur est survenue.';
-      await this.ui.showToast(message);
-    } finally {
-      await loading.dismiss();
-    }
+    this.ui.showLoading('Connexion…').pipe(
+      switchMap(loading =>
+        this.authService.login(this.form.value as { email: string; password: string }).pipe(
+          tap(() => this.router.navigate(['/tabs/search'])),
+          catchError((err: unknown) => {
+            const message = (err as { status?: number }).status === 401
+              ? 'Email ou mot de passe incorrect.'
+              : 'Une erreur est survenue.';
+            return this.ui.showToast(message);
+          }),
+          finalize(() => loading.dismiss())
+        )
+      )
+    ).subscribe();
   }
 }

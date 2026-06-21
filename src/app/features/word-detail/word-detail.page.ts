@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { filter, switchMap, tap } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -93,22 +94,21 @@ export class WordDetailPage implements OnInit {
     });
   }
 
-  protected async confirmDelete(): Promise<void> {
+  protected confirmDelete(): void {
     const word = this.userWord();
     if (!word) return;
 
-    const confirmed = await this.ui.confirmAction(
+    this.ui.confirmAction(
       'Supprimer ce mot ?',
       'Cette action retirera le mot de votre dictionnaire personnel.',
       'Supprimer'
-    );
-    if (!confirmed) return;
-
-    this.wordService.deleteApiWordsId(word.id).subscribe({
-      next: async () => {
-        await this.ui.showToast('Mot supprimé.', 'success');
+    ).pipe(
+      filter(confirmed => confirmed),
+      switchMap(() => this.wordService.deleteApiWordsId(word.id)),
+      tap(() => {
+        this.ui.showToast('Mot supprimé.', 'success').subscribe();
         this.router.navigate(['/tabs/dictionary']);
-      },
-    });
+      })
+    ).subscribe();
   }
 }

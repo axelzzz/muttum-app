@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
+import { filter, tap } from 'rxjs';
 import {
   IonContent,
   IonHeader,
@@ -45,15 +46,17 @@ export class ProfilePage {
     this.themeService.applyScheme(event.detail.checked ? 'dark' : 'light');
   }
 
-  protected async confirmLogout(): Promise<void> {
-    const confirmed = await this.ui.confirmAction(
+  protected confirmLogout(): void {
+    this.ui.confirmAction(
       'Se déconnecter ?',
       'Vous devrez vous reconnecter pour accéder à votre dictionnaire.',
       'Déconnexion'
-    );
-    if (confirmed) {
-      this.authService.logout();
-      await this.router.navigate(['/auth/login']);
-    }
+    ).pipe(
+      filter(confirmed => confirmed),
+      tap(() => {
+        this.authService.logout();
+        this.router.navigate(['/auth/login']);
+      })
+    ).subscribe();
   }
 }
