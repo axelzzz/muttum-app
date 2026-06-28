@@ -1,8 +1,15 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { InfiniteScrollCustomEvent } from '@ionic/angular';
 import {
   IonButton,
+  IonButtons,
   IonContent,
   IonHeader,
   IonIcon,
@@ -14,12 +21,17 @@ import {
   IonSkeletonText,
   IonTitle,
   IonToolbar,
-  IonButtons,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { bookOutline, chevronForwardOutline, star, starOutline } from 'ionicons/icons';
+import {
+  bookOutline,
+  chevronForwardOutline,
+  star,
+  starOutline,
+} from 'ionicons/icons';
 import { WordsService } from '../../core/api/words/words.service';
 import { GetApiWordsParams, UserWord } from '../../core/api/model';
+import { SidebarService } from '../../core/services/sidebar.service';
 
 const PAGE_SIZE = 20;
 const FAVORITES_MAX_LIMIT = 500;
@@ -27,14 +39,26 @@ const FAVORITES_MAX_LIMIT = 500;
 @Component({
   selector: 'app-dictionary',
   templateUrl: './dictionary.page.html',
+  styleUrl: './dictionary.page.scss',
   imports: [
-    IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
-    IonSearchbar, IonContent, IonRefresher, IonRefresherContent,
-    IonSkeletonText, IonInfiniteScroll, IonInfiniteScrollContent,
+    IonHeader,
+    IonToolbar,
+    IonButtons,
+    IonTitle,
+    IonButton,
+    IonIcon,
+    IonSearchbar,
+    IonContent,
+    IonRefresher,
+    IonRefresherContent,
+    IonSkeletonText,
+    IonInfiniteScroll,
+    IonInfiniteScrollContent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DictionaryPage implements OnInit {
+  protected readonly sidebarService = inject(SidebarService);
   private readonly wordService = inject(WordsService);
   private readonly router = inject(Router);
 
@@ -73,7 +97,7 @@ export class DictionaryPage implements OnInit {
   }
 
   protected toggleFavorites(): void {
-    this.showFavoritesOnly.update(v => !v);
+    this.showFavoritesOnly.update((v) => !v);
     this.resetAndLoad();
   }
 
@@ -107,7 +131,7 @@ export class DictionaryPage implements OnInit {
   private loadWords(
     showSpinner: boolean,
     refreshEvent?: CustomEvent,
-    infiniteEvent?: InfiniteScrollCustomEvent
+    infiniteEvent?: InfiniteScrollCustomEvent,
   ): void {
     if (showSpinner) this.isLoading.set(true);
 
@@ -115,11 +139,15 @@ export class DictionaryPage implements OnInit {
 
     this.wordService.getApiWords(this.buildQuery()).subscribe({
       next: ({ items = [], pagination }) => {
-        const filtered = isFavoritesMode ? items.filter(w => w.favorite) : items;
+        const filtered = isFavoritesMode
+          ? items.filter((w) => w.favorite)
+          : items;
         const updated = showSpinner ? filtered : [...this.words(), ...filtered];
         this.words.set(updated);
         this.hasMore.set(
-          !isFavoritesMode && updated.length < (pagination?.total ?? 0) && items.length === PAGE_SIZE
+          !isFavoritesMode &&
+            updated.length < (pagination?.total ?? 0) &&
+            items.length === PAGE_SIZE,
         );
         this.isLoading.set(false);
         refreshEvent?.detail?.complete?.();

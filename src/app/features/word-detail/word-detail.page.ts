@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
 import { filter, switchMap, tap } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -14,7 +20,12 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chatbubbleOutline, star, starOutline, trashOutline } from 'ionicons/icons';
+import {
+  chatbubbleOutline,
+  star,
+  starOutline,
+  trashOutline,
+} from 'ionicons/icons';
 import { WordsService } from '../../core/api/words/words.service';
 import { UiService } from '../../ui/ui.service';
 import { UserWord } from '../../core/api/model';
@@ -26,10 +37,18 @@ type LoadedWord = UserWord & { id: string };
 @Component({
   selector: 'app-word-detail',
   templateUrl: './word-detail.page.html',
+  styleUrl: './word-detail.page.scss',
   imports: [
     DatePipe,
-    IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonIcon,
-    IonContent, IonSkeletonText,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonButtons,
+    IonBackButton,
+    IonButton,
+    IonIcon,
+    IonContent,
+    IonSkeletonText,
     NotesEditorComponent,
     TagsEditorComponent,
   ],
@@ -65,9 +84,11 @@ export class WordDetailPage implements OnInit {
   protected toggleFavorite(): void {
     const word = this.userWord();
     if (!word) return;
-    this.wordService.patchApiWordsId(word.id, { favorite: !word.favorite }).subscribe({
-      next: (updated) => this.userWord.set(updated as LoadedWord),
-    });
+    this.wordService
+      .patchApiWordsId(word.id, { favorite: !word.favorite })
+      .subscribe({
+        next: (updated) => this.userWord.set(updated as LoadedWord),
+      });
   }
 
   protected onSaveNotes(notes: string): void {
@@ -81,34 +102,43 @@ export class WordDetailPage implements OnInit {
   protected onAddTag(tag: string): void {
     const word = this.userWord();
     if (!word) return;
-    this.wordService.patchApiWordsId(word.id, { tags: [...(word.tags ?? []), tag] }).subscribe({
-      next: (updated) => this.userWord.set(updated as LoadedWord),
-    });
+    this.wordService
+      .patchApiWordsId(word.id, { tags: [...(word.tags ?? []), tag] })
+      .subscribe({
+        next: (updated) => this.userWord.set(updated as LoadedWord),
+      });
   }
 
   protected onRemoveTag(tag: string): void {
     const word = this.userWord();
     if (!word) return;
-    this.wordService.patchApiWordsId(word.id, { tags: (word.tags ?? []).filter(t => t !== tag) }).subscribe({
-      next: (updated) => this.userWord.set(updated as LoadedWord),
-    });
+    this.wordService
+      .patchApiWordsId(word.id, {
+        tags: (word.tags ?? []).filter((t) => t !== tag),
+      })
+      .subscribe({
+        next: (updated) => this.userWord.set(updated as LoadedWord),
+      });
   }
 
   protected confirmDelete(): void {
     const word = this.userWord();
     if (!word) return;
 
-    this.ui.confirmAction(
-      'Supprimer ce mot ?',
-      'Cette action retirera le mot de votre dictionnaire personnel.',
-      'Supprimer'
-    ).pipe(
-      filter(confirmed => confirmed),
-      switchMap(() => this.wordService.deleteApiWordsId(word.id)),
-      tap(() => {
-        this.ui.showToast('Mot supprimé.', 'success').subscribe();
-        this.router.navigate(['/tabs/dictionary']);
-      })
-    ).subscribe();
+    this.ui
+      .confirmAction(
+        'Supprimer ce mot ?',
+        'Cette action retirera le mot de votre dictionnaire personnel.',
+        'Supprimer',
+      )
+      .pipe(
+        filter((confirmed) => confirmed),
+        switchMap(() => this.wordService.deleteApiWordsId(word.id)),
+        tap(() => {
+          this.ui.showToast('Mot supprimé.', 'success').subscribe();
+          this.router.navigate(['/tabs/dictionary']);
+        }),
+      )
+      .subscribe();
   }
 }

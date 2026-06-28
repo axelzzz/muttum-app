@@ -1,5 +1,10 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="sidebarService.toggle()" aria-label="Menu de navigation">
+        <ion-icon slot="icon-only" name="menu-outline" aria-hidden="true"></ion-icon>
+      </ion-button>
+    </ion-buttons>
     <ion-title>Profil</ion-title>
   </ion-toolbar>
 </ion-header>

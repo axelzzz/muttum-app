@@ -3,6 +3,8 @@ import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { filter, tap } from 'rxjs';
 import {
+  IonButton,
+  IonButtons,
   IonContent,
   IonHeader,
   IonIcon,
@@ -14,22 +16,40 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { calendarOutline, logOutOutline, mailOutline, moonOutline, personOutline } from 'ionicons/icons';
+import {
+  calendarOutline,
+  logOutOutline,
+  mailOutline,
+  moonOutline,
+  personOutline,
+} from 'ionicons/icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { UiService } from '../../ui/ui.service';
+import { SidebarService } from '../../core/services/sidebar.service';
 
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.page.html',
+  styleUrl: './profile.page.scss',
   imports: [
     DatePipe,
-    IonHeader, IonToolbar, IonTitle, IonContent,
-    IonList, IonItem, IonLabel, IonIcon, IonToggle,
+    IonHeader,
+    IonToolbar,
+    IonButton,
+    IonButtons,
+    IonTitle,
+    IonContent,
+    IonList,
+    IonItem,
+    IonLabel,
+    IonIcon,
+    IonToggle,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfilePage {
+  protected readonly sidebarService = inject(SidebarService);
   private readonly authService = inject(AuthService);
   private readonly themeService = inject(ThemeService);
   private readonly ui = inject(UiService);
@@ -39,7 +59,13 @@ export class ProfilePage {
   protected readonly isDark = this.themeService.isDark;
 
   constructor() {
-    addIcons({ moonOutline, personOutline, mailOutline, calendarOutline, logOutOutline });
+    addIcons({
+      moonOutline,
+      personOutline,
+      mailOutline,
+      calendarOutline,
+      logOutOutline,
+    });
   }
 
   protected onThemeToggle(event: CustomEvent): void {
@@ -47,16 +73,19 @@ export class ProfilePage {
   }
 
   protected confirmLogout(): void {
-    this.ui.confirmAction(
-      'Se déconnecter ?',
-      'Vous devrez vous reconnecter pour accéder à votre dictionnaire.',
-      'Déconnexion'
-    ).pipe(
-      filter(confirmed => confirmed),
-      tap(() => {
-        this.authService.logout();
-        this.router.navigate(['/auth/login']);
-      })
-    ).subscribe();
+    this.ui
+      .confirmAction(
+        'Se déconnecter ?',
+        'Vous devrez vous reconnecter pour accéder à votre dictionnaire.',
+        'Déconnexion',
+      )
+      .pipe(
+        filter((confirmed) => confirmed),
+        tap(() => {
+          this.authService.logout();
+          this.router.navigate(['/auth/login']);
+        }),
+      )
+      .subscribe();
   }
 }

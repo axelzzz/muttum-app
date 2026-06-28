@@ -1,18 +1,7 @@
 <ion-tabs>
-  <ion-tab-bar slot="bottom">
-    <ion-tab-button tab="search" href="/tabs/search" aria-label="Rechercher un mot">
-      <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
-      <ion-label>Recherche</ion-label>
-    </ion-tab-button>
-
-    <ion-tab-button tab="dictionary" href="/tabs/dictionary" aria-label="Mon dictionnaire">
-      <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
-      <ion-label>Dictionnaire</ion-label>
-    </ion-tab-button>
-
-    <ion-tab-button tab="profile" href="/tabs/profile" aria-label="Mon profil">
-      <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
-      <ion-label>Profil</ion-label>
-    </ion-tab-button>
+  <ion-tab-bar slot="bottom" class="hidden-tab-bar" aria-hidden="true">
+    <ion-tab-button tab="search" href="/tabs/search"></ion-tab-button>
+    <ion-tab-button tab="dictionary" href="/tabs/dictionary"></ion-tab-button>
+    <ion-tab-button tab="profile" href="/tabs/profile"></ion-tab-button>
   </ion-tab-bar>
 </ion-tabs>

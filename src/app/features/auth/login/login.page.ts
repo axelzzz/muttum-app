@@ -26,6 +26,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
+  styleUrl: './login.page.scss',
   imports: [RouterLink, IonContent, IonItem, IonLabel, IonInput, IonButton, IonNote, IonIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

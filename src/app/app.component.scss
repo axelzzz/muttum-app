@@ -1,0 +1,86 @@
+ion-menu {
+  --background: var(--ion-toolbar-background);
+  --width: 240px;
+}
+
+.sidebar-content {
+  --background: var(--ion-toolbar-background);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1.25rem 1.25rem;
+  border-bottom: 1px solid var(--ion-border-color);
+}
+
+.sidebar-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb), 0.35);
+}
+
+.sidebar-name {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ion-text-color);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 0.75rem;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  color: var(--ion-color-medium);
+  text-decoration: none;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition:
+    background 0.15s ease-out,
+    color 0.15s ease-out;
+
+  ion-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: rgba(var(--ion-color-primary-rgb), 0.06);
+    color: var(--ion-text-color);
+  }
+
+  &--active {
+    background: rgba(var(--ion-color-primary-rgb), 0.1);
+    color: var(--ion-color-primary);
+    font-weight: 600;
+
+    ion-icon {
+      color: var(--ion-color-primary);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-link {
+    transition: none;
+  }
+}

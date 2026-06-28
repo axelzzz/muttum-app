@@ -1,135 +1,153 @@
 <ion-content class="auth-content" [fullscreen]="true">
   <div class="auth-container">
-    <div class="auth-header">
-      <div class="auth-logo" aria-hidden="true">M</div>
-      <h1 class="auth-title">Créer un compte</h1>
-      <p class="auth-subtitle">Rejoignez Muttum gratuitement</p>
-    </div>
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo" aria-hidden="true">M</div>
+        <h1 class="auth-title">Créer un compte</h1>
+        <p class="auth-subtitle">Rejoignez Muttum gratuitement</p>
+      </div>
 
-    <form class="auth-form" novalidate>
-      <ion-item
-        class="form-item"
-        [class.ion-invalid]="(submitted() || usernameTouched()) && usernameErrors()"
-        lines="none"
-      >
-        <ion-label position="floating">Nom d'utilisateur</ion-label>
-        <ion-input
-          type="text"
-          autocomplete="username"
-          aria-label="Nom d'utilisateur"
-          aria-required="true"
-          (ionInput)="username.set($event.detail.value ?? '')"
-          (ionBlur)="usernameTouched.set(true)"
-        ></ion-input>
-        @if ((submitted() || usernameTouched()) && usernameErrors()?.required) {
-        <ion-note slot="error">Le nom d'utilisateur est requis.</ion-note>
-        } @if ((submitted() || usernameTouched()) &&
-        usernameErrors()?.minlength) {
-        <ion-note slot="error">Minimum 2 caractères.</ion-note>
-        }
-      </ion-item>
+      <form class="auth-form" novalidate>
+        <div
+          class="form-field"
+          [class.field-invalid]="(submitted() || usernameTouched()) && usernameErrors()"
+        >
+          <ion-item
+            class="form-item"
+            [class.ion-invalid]="(submitted() || usernameTouched()) && usernameErrors()"
+            lines="none"
+          >
+            <ion-label position="floating">Nom d'utilisateur</ion-label>
+            <ion-input
+              type="text"
+              autocomplete="username"
+              aria-label="Nom d'utilisateur"
+              aria-required="true"
+              (ionInput)="username.set($event.detail.value ?? '')"
+              (ionBlur)="usernameTouched.set(true)"
+            ></ion-input>
+            @if ((submitted() || usernameTouched()) && usernameErrors()?.required) {
+              <ion-note slot="error">Le nom d'utilisateur est requis.</ion-note>
+            }
+            @if ((submitted() || usernameTouched()) && usernameErrors()?.minlength) {
+              <ion-note slot="error">Minimum 2 caractères.</ion-note>
+            }
+          </ion-item>
+        </div>
 
-      <ion-item
-        class="form-item"
-        [class.ion-invalid]="(submitted() || emailTouched()) && emailErrors()"
-        lines="none"
-      >
-        <ion-label position="floating">Adresse e-mail</ion-label>
-        <ion-input
-          type="email"
-          autocomplete="email"
-          inputmode="email"
-          aria-label="Adresse e-mail"
-          aria-required="true"
-          (ionInput)="email.set($event.detail.value ?? '')"
-          (ionBlur)="emailTouched.set(true)"
-        ></ion-input>
-        @if ((submitted() || emailTouched()) && emailErrors()?.required) {
-        <ion-note slot="error">L'e-mail est requis.</ion-note>
-        } @if ((submitted() || emailTouched()) && emailErrors()?.email) {
-        <ion-note slot="error">Format d'e-mail invalide.</ion-note>
-        }
-      </ion-item>
+        <div
+          class="form-field"
+          [class.field-invalid]="(submitted() || emailTouched()) && emailErrors()"
+        >
+          <ion-item
+            class="form-item"
+            [class.ion-invalid]="(submitted() || emailTouched()) && emailErrors()"
+            lines="none"
+          >
+            <ion-label position="floating">Adresse e-mail</ion-label>
+            <ion-input
+              type="email"
+              autocomplete="email"
+              inputmode="email"
+              aria-label="Adresse e-mail"
+              aria-required="true"
+              (ionInput)="email.set($event.detail.value ?? '')"
+              (ionBlur)="emailTouched.set(true)"
+            ></ion-input>
+            @if ((submitted() || emailTouched()) && emailErrors()?.required) {
+              <ion-note slot="error">L'e-mail est requis.</ion-note>
+            }
+            @if ((submitted() || emailTouched()) && emailErrors()?.email) {
+              <ion-note slot="error">Format d'e-mail invalide.</ion-note>
+            }
+          </ion-item>
+        </div>
 
-      <ion-item
-        class="form-item"
-        [class.ion-invalid]="(submitted() || passwordTouched()) && passwordErrors()"
-        lines="none"
-      >
-        <ion-label position="floating">Mot de passe</ion-label>
-        <ion-input
-          [type]="isPasswordVisible() ? 'text' : 'password'"
-          autocomplete="new-password"
-          aria-label="Mot de passe"
-          aria-required="true"
-          (ionInput)="password.set($event.detail.value ?? '')"
-          (ionBlur)="passwordTouched.set(true)"
-        ></ion-input>
+        <div
+          class="form-field"
+          [class.field-invalid]="(submitted() || passwordTouched()) && passwordErrors()"
+        >
+          <ion-item
+            class="form-item"
+            [class.ion-invalid]="(submitted() || passwordTouched()) && passwordErrors()"
+            lines="none"
+          >
+            <ion-label position="floating">Mot de passe</ion-label>
+            <ion-input
+              [type]="isPasswordVisible() ? 'text' : 'password'"
+              autocomplete="new-password"
+              aria-label="Mot de passe"
+              aria-required="true"
+              (ionInput)="password.set($event.detail.value ?? '')"
+              (ionBlur)="passwordTouched.set(true)"
+            ></ion-input>
+            <ion-button
+              slot="end"
+              fill="clear"
+              size="small"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="isPasswordVisible() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+              class="password-toggle"
+            >
+              <ion-icon
+                [name]="isPasswordVisible() ? 'eye-off-outline' : 'eye-outline'"
+                aria-hidden="true"
+              ></ion-icon>
+            </ion-button>
+            @if ((submitted() || passwordTouched()) && passwordErrors()?.required) {
+              <ion-note slot="error">Le mot de passe est requis.</ion-note>
+            }
+            @if ((submitted() || passwordTouched()) && passwordErrors()?.minlength) {
+              <ion-note slot="error">Minimum 6 caractères.</ion-note>
+            }
+          </ion-item>
+        </div>
+
+        <div
+          class="form-field"
+          [class.field-invalid]="(submitted() || confirmPasswordTouched()) && confirmPasswordErrors()"
+        >
+          <ion-item
+            class="form-item"
+            [class.ion-invalid]="(submitted() || confirmPasswordTouched()) && confirmPasswordErrors()"
+            lines="none"
+          >
+            <ion-label position="floating">Confirmer le mot de passe</ion-label>
+            <ion-input
+              [type]="isPasswordVisible() ? 'text' : 'password'"
+              autocomplete="new-password"
+              aria-label="Confirmer le mot de passe"
+              aria-required="true"
+              (ionInput)="confirmPassword.set($event.detail.value ?? '')"
+              (ionBlur)="confirmPasswordTouched.set(true)"
+            ></ion-input>
+            @if ((submitted() || confirmPasswordTouched()) && confirmPasswordErrors()?.required) {
+              <ion-note slot="error">Le mot de passe de confirmation est requis.</ion-note>
+            }
+            @if ((submitted() || confirmPasswordTouched()) && confirmPasswordErrors()?.mismatch) {
+              <ion-note slot="error">Les mots de passe ne correspondent pas.</ion-note>
+            }
+          </ion-item>
+        </div>
+
         <ion-button
-          slot="end"
-          fill="clear"
-          size="small"
-          (click)="togglePasswordVisibility()"
-          [attr.aria-label]="isPasswordVisible() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
-          class="password-toggle"
+          expand="block"
+          type="button"
+          class="submit-btn"
+          [disabled]="isSubmitting()"
+          (click)="submit()"
+          aria-label="Créer mon compte"
         >
-          <ion-icon
-            [name]="isPasswordVisible() ? 'eye-off-outline' : 'eye-outline'"
-            aria-hidden="true"
-          ></ion-icon>
+          Créer mon compte
         </ion-button>
-        @if ((submitted() || passwordTouched()) && passwordErrors()?.required) {
-        <ion-note slot="error">Le mot de passe est requis.</ion-note>
-        } @if ((submitted() || passwordTouched()) &&
-        passwordErrors()?.minlength) {
-        <ion-note slot="error">Minimum 6 caractères.</ion-note>
-        }
-      </ion-item>
+      </form>
 
-      <ion-item
-        class="form-item"
-        [class.ion-invalid]="(submitted() || confirmPasswordTouched()) && confirmPasswordErrors()"
-        lines="none"
-      >
-        <ion-label position="floating">Confirmer le mot de passe</ion-label>
-        <ion-input
-          [type]="isPasswordVisible() ? 'text' : 'password'"
-          autocomplete="new-password"
-          aria-label="Confirmer le mot de passe"
-          aria-required="true"
-          (ionInput)="confirmPassword.set($event.detail.value ?? '')"
-          (ionBlur)="confirmPasswordTouched.set(true)"
-        ></ion-input>
-        @if ((submitted() || confirmPasswordTouched()) &&
-        confirmPasswordErrors()?.required) {
-        <ion-note slot="error"
-          >Le mot de passe de confirmation est requis.</ion-note
-        >
-        } @if ((submitted() || confirmPasswordTouched()) &&
-        confirmPasswordErrors()?.mismatch) {
-        <ion-note slot="error"
-          >Les mots de passe ne correspondent pas.</ion-note
-        >
-        }
-      </ion-item>
-
-      <ion-button
-        expand="block"
-        type="button"
-        class="submit-btn"
-        [disabled]="isSubmitting()"
-        (click)="submit()"
-        aria-label="Créer mon compte"
-      >
-        Créer mon compte
-      </ion-button>
-    </form>
-
-    <div class="auth-footer">
-      <p class="auth-link-text">Déjà un compte ?</p>
-      <ion-button fill="clear" routerLink="/auth/login" class="auth-link-btn">
-        Se connecter
-      </ion-button>
+      <div class="auth-footer">
+        <p class="auth-link-text">Déjà un compte ?</p>
+        <ion-button fill="clear" routerLink="/auth/login" class="auth-link-btn">
+          Se connecter
+        </ion-button>
+      </div>
     </div>
   </div>
 </ion-content>

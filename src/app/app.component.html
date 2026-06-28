@@ -1,3 +1,47 @@
 <ion-app>
-  <ion-router-outlet></ion-router-outlet>
+  <ion-menu
+    contentId="main-content"
+    menuId="main-menu"
+    type="overlay"
+    [disabled]="!isMenuEnabled()"
+  >
+    <ion-content class="sidebar-content">
+      <div class="sidebar-brand" aria-hidden="true">
+        <div class="sidebar-logo">M</div>
+        <span class="sidebar-name">Muttum</span>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Navigation principale">
+        <a
+          class="sidebar-link"
+          routerLink="/tabs/search"
+          routerLinkActive="sidebar-link--active"
+          aria-label="Rechercher un mot"
+        >
+          <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+          <span>Recherche</span>
+        </a>
+        <a
+          class="sidebar-link"
+          routerLink="/tabs/dictionary"
+          routerLinkActive="sidebar-link--active"
+          aria-label="Mon dictionnaire"
+        >
+          <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
+          <span>Dictionnaire</span>
+        </a>
+        <a
+          class="sidebar-link"
+          routerLink="/tabs/profile"
+          routerLinkActive="sidebar-link--active"
+          aria-label="Mon profil"
+        >
+          <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+          <span>Profil</span>
+        </a>
+      </nav>
+    </ion-content>
+  </ion-menu>
+
+  <ion-router-outlet id="main-content"></ion-router-outlet>
 </ion-app>

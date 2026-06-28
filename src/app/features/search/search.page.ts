@@ -1,9 +1,15 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { EMPTY, catchError, tap } from 'rxjs';
 import {
   IonBadge,
   IonButton,
+  IonButtons,
   IonContent,
   IonHeader,
   IonIcon,
@@ -13,21 +19,39 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { createOutline, helpCircleOutline, openOutline, searchOutline, star, starOutline } from 'ionicons/icons';
+import {
+  createOutline,
+  helpCircleOutline,
+  openOutline,
+  searchOutline,
+  star,
+  starOutline,
+} from 'ionicons/icons';
 import { WordsService } from '../../core/api/words/words.service';
 import { SearchResult } from '../../core/api/model';
 import { UiService } from '../../ui/ui.service';
+import { SidebarService } from '../../core/services/sidebar.service';
 
 @Component({
   selector: 'app-search',
   templateUrl: './search.page.html',
+  styleUrl: './search.page.scss',
   imports: [
-    IonHeader, IonToolbar, IonTitle, IonSearchbar, IonContent,
-    IonSkeletonText, IonBadge, IonButton, IonIcon,
+    IonHeader,
+    IonToolbar,
+    IonButtons,
+    IonTitle,
+    IonSearchbar,
+    IonContent,
+    IonSkeletonText,
+    IonBadge,
+    IonButton,
+    IonIcon,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchPage {
+  protected readonly sidebarService = inject(SidebarService);
   private readonly wordService = inject(WordsService);
   private readonly ui = inject(UiService);
   private readonly router = inject(Router);
@@ -38,7 +62,14 @@ export class SearchPage {
   protected readonly lastQuery = signal('');
 
   constructor() {
-    addIcons({ searchOutline, helpCircleOutline, openOutline, star, starOutline, createOutline });
+    addIcons({
+      searchOutline,
+      helpCircleOutline,
+      openOutline,
+      star,
+      starOutline,
+      createOutline,
+    });
   }
 
   protected search(event: CustomEvent): void {
@@ -50,20 +81,23 @@ export class SearchPage {
     this.result.set(null);
     this.notFound.set(false);
 
-    this.wordService.getApiWordsSearch({ word: query }).pipe(
-      tap(userWord => {
-        this.isLoading.set(false);
-        this.result.set(userWord);
-      }),
-      catchError((err: { status?: number }) => {
-        this.isLoading.set(false);
-        if (err.status === 404) {
-          this.notFound.set(true);
-          return EMPTY;
-        }
-        return this.ui.showToast('Impossible de contacter le dictionnaire.');
-      })
-    ).subscribe();
+    this.wordService
+      .getApiWordsSearch({ word: query })
+      .pipe(
+        tap((userWord) => {
+          this.isLoading.set(false);
+          this.result.set(userWord);
+        }),
+        catchError((err: { status?: number }) => {
+          this.isLoading.set(false);
+          if (err.status === 404) {
+            this.notFound.set(true);
+            return EMPTY;
+          }
+          return this.ui.showToast('Impossible de contacter le dictionnaire.');
+        }),
+      )
+      .subscribe();
   }
 
   protected clearSearch(): void {
