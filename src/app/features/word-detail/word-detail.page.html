@@ -1,23 +1,25 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/dictionary" aria-label="Retour"></ion-back-button>
+      <ion-back-button defaultHref="/tabs/dictionary" aria-label="Retour"
+        ></ion-back-button
+      >
     </ion-buttons>
-    <ion-title>{{ userWord()?.word ?? '' }}</ion-title>
+    <ion-title>Retour</ion-title>
     <ion-buttons slot="end">
       @if (userWord(); as word) {
-        <ion-button
-          (click)="toggleFavorite()"
-          [attr.aria-label]="word.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'"
-          [attr.aria-pressed]="word.favorite"
-        >
-          <ion-icon
-            slot="icon-only"
-            [name]="word.favorite ? 'star' : 'star-outline'"
-            [color]="word.favorite ? 'warning' : ''"
-            aria-hidden="true"
-          ></ion-icon>
-        </ion-button>
+      <ion-button
+        (click)="toggleFavorite()"
+        [attr.aria-label]="word.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+        [attr.aria-pressed]="word.favorite"
+      >
+        <ion-icon
+          slot="icon-only"
+          [name]="word.favorite ? 'star' : 'star-outline'"
+          [color]="word.favorite ? 'warning' : ''"
+          aria-hidden="true"
+        ></ion-icon>
+      </ion-button>
       }
     </ion-buttons>
   </ion-toolbar>
@@ -25,91 +27,96 @@
 
 <ion-content [fullscreen]="true">
   @if (isLoading()) {
-    <div class="detail-body" aria-busy="true">
-      <div class="word-hero">
-        <ion-skeleton-text animated class="skel-title"></ion-skeleton-text>
-        <ion-skeleton-text animated class="skel-meta"></ion-skeleton-text>
-      </div>
-      <div class="section-card">
-        @for (i of [1, 2, 3]; track i) {
-          <ion-skeleton-text animated class="skel-line"></ion-skeleton-text>
+  <div class="detail-body" aria-busy="true">
+    <div class="word-hero">
+      <ion-skeleton-text animated class="skel-title"></ion-skeleton-text>
+      <ion-skeleton-text animated class="skel-meta"></ion-skeleton-text>
+    </div>
+    <div class="section-card">
+      @for (i of [1, 2, 3]; track i) {
+      <ion-skeleton-text animated class="skel-line"></ion-skeleton-text>
+      }
+    </div>
+  </div>
+  } @if (!isLoading() && userWord(); as word) {
+  <div class="detail-body">
+    <div class="word-hero">
+      <h1 class="hero-word">{{ word.word }}</h1>
+      <div class="hero-meta">
+        @if (word.definitions?.[0]?.partOfSpeech; as pos) {
+        <span class="hero-pos">{{ pos }}</span>
+        <span class="meta-sep" aria-hidden="true">·</span>
         }
+        <span class="meta-text"
+          >{{ word.searchCount }} recherche{{ (word.searchCount ?? 0) > 1 ? 's'
+          : '' }}</span
+        >
       </div>
     </div>
-  }
 
-  @if (!isLoading() && userWord(); as word) {
-    <div class="detail-body">
-      <div class="word-hero">
-        <h1 class="hero-word">{{ word.word }}</h1>
-        <div class="hero-meta">
-          @if (word.definitions?.[0]?.partOfSpeech; as pos) {
-            <span class="hero-pos">{{ pos }}</span>
-            <span class="meta-sep" aria-hidden="true">·</span>
+    <div class="section-card">
+      <h2 class="section-title">Définitions</h2>
+      <ol class="definitions-list">
+        @for (def of word.definitions ?? []; track $index) {
+        <li class="definition-entry">
+          @if (def.partOfSpeech) {
+          <span class="pos-label">{{ def.partOfSpeech }}</span>
           }
-          <span class="meta-text">{{ word.searchCount }} recherche{{ (word.searchCount ?? 0) > 1 ? 's' : '' }}</span>
-        </div>
-      </div>
-
-      <div class="section-card">
-        <h2 class="section-title">Définitions</h2>
-        <ol class="definitions-list">
-          @for (def of word.definitions ?? []; track $index) {
-            <li class="definition-entry">
-              @if (def.partOfSpeech) {
-                <span class="pos-label">{{ def.partOfSpeech }}</span>
-              }
-              <p class="entry-def">{{ def.definition }}</p>
-              @if ((def.examples?.length ?? 0) > 0) {
-                <ul class="examples-list">
-                  @for (ex of def.examples ?? []; track ex) {
-                    <li class="example-item">{{ ex }}</li>
-                  }
-                </ul>
-              }
-            </li>
+          <p class="entry-def">{{ def.definition }}</p>
+          @if ((def.examples?.length ?? 0) > 0) {
+          <ul class="examples-list">
+            @for (ex of def.examples ?? []; track ex) {
+            <li class="example-item">{{ ex }}</li>
+            }
+          </ul>
           }
-        </ol>
-      </div>
-
-      <div class="section-card">
-        <h2 class="section-title">Tags</h2>
-        <app-tags-editor
-          [tags]="word.tags ?? []"
-          (addTag)="onAddTag($event)"
-          (removeTag)="onRemoveTag($event)"
-        ></app-tags-editor>
-      </div>
-
-      <div class="section-card">
-        <app-notes-editor
-          [notes]="word.notes ?? ''"
-          (save)="onSaveNotes($event)"
-        ></app-notes-editor>
-      </div>
-
-      <div class="meta-rows">
-        <div class="meta-row">
-          <span class="meta-label">Première recherche</span>
-          <span class="meta-value">{{ word.firstSearchedAt | date:'d MMM yyyy':'':'fr' }}</span>
-        </div>
-        <div class="meta-row">
-          <span class="meta-label">Dernière recherche</span>
-          <span class="meta-value">{{ word.lastSearchedAt | date:'d MMM yyyy':'':'fr' }}</span>
-        </div>
-      </div>
-
-      <ion-button
-        expand="block"
-        fill="clear"
-        color="danger"
-        class="delete-btn"
-        (click)="confirmDelete()"
-        aria-label="Supprimer ce mot de mon dictionnaire"
-      >
-        <ion-icon name="trash-outline" slot="start" aria-hidden="true"></ion-icon>
-        Supprimer du dictionnaire
-      </ion-button>
+        </li>
+        }
+      </ol>
     </div>
+
+    <div class="section-card">
+      <h2 class="section-title">Tags</h2>
+      <app-tags-editor
+        [tags]="word.tags ?? []"
+        (addTag)="onAddTag($event)"
+        (removeTag)="onRemoveTag($event)"
+      ></app-tags-editor>
+    </div>
+
+    <div class="section-card">
+      <app-notes-editor
+        [notes]="word.notes ?? ''"
+        (save)="onSaveNotes($event)"
+      ></app-notes-editor>
+    </div>
+
+    <div class="meta-rows">
+      <div class="meta-row">
+        <span class="meta-label">Première recherche</span>
+        <span class="meta-value"
+          >{{ word.firstSearchedAt | date:'d MMM yyyy':'':'fr' }}</span
+        >
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Dernière recherche</span>
+        <span class="meta-value"
+          >{{ word.lastSearchedAt | date:'d MMM yyyy':'':'fr' }}</span
+        >
+      </div>
+    </div>
+
+    <ion-button
+      expand="block"
+      fill="clear"
+      color="danger"
+      class="delete-btn"
+      (click)="confirmDelete()"
+      aria-label="Supprimer ce mot de mon dictionnaire"
+    >
+      <ion-icon name="trash-outline" slot="start" aria-hidden="true"></ion-icon>
+      Supprimer du dictionnaire
+    </ion-button>
+  </div>
   }
 </ion-content>
