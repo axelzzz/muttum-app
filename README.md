@@ -61,7 +61,7 @@ src/app/
 
 ### Data model
 
-- `Word` — canonical dictionary entry (`_id`, `word`, `definitions[]`, `source`)
+- `Word` — canonical dictionary entry (`id`, `word`, `definitions[]`, `source`)
 - `UserWord` — join between a user and a word (`userId`, `wordId`, `notes`, `tags`, `favorite`, search metadata)
 
 The API always returns `UserWordPopulated` (with `wordId` resolved to a full `Word` object).
@@ -89,7 +89,7 @@ The production image is a two-stage build: Angular is compiled by Node, then the
   ├── /*     → static Angular build (www/)
   └── /api/* → proxy → [backend :3000]
                               ↓
-                        [MongoDB :27017]
+                        [PostgreSQL :5432]
 ```
 
 **Build the image standalone:**
@@ -99,7 +99,7 @@ docker build -t muttum-frontend .
 docker run -p 80:80 muttum-frontend
 ```
 
-**Run the full stack** (frontend + backend + MongoDB + Portainer) from the `projets/` parent directory:
+**Run the full stack** (frontend + backend + PostgreSQL + Portainer) from the `projets/` parent directory:
 
 ```bash
 cp ../.env.example ../.env

@@ -44,7 +44,7 @@ src/app/
 ### Data model
 
 The backend has two core entities:
-- `Word` — canonical dictionary entry (`_id`, `word`, `definitions[]`, `source`)
+- `Word` — canonical dictionary entry (`id`, `word`, `definitions[]`, `source`)
 - `UserWord` — join between a user and a word (`userId`, `wordId`, `notes`, `tags`, `favorite`, search metadata)
 
 The API always returns `UserWordPopulated` (with `wordId` resolved to a full `Word` object) rather than bare `UserWord`.
