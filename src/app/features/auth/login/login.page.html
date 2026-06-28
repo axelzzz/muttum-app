@@ -6,41 +6,43 @@
       <p class="auth-subtitle">Votre dictionnaire personnel</p>
     </div>
 
-    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form" novalidate>
+    <form class="auth-form" novalidate>
       <ion-item
         class="form-item"
-        [class.ion-invalid]="emailControl.invalid && emailControl.touched"
+        [class.ion-invalid]="(submitted() || emailTouched()) && emailErrors()"
         lines="none"
       >
         <ion-label position="floating">Adresse e-mail</ion-label>
         <ion-input
-          formControlName="email"
           type="email"
           autocomplete="email"
           inputmode="email"
           aria-label="Adresse e-mail"
           aria-required="true"
+          (ionInput)="email.set($event.detail.value ?? '')"
+          (ionBlur)="emailTouched.set(true)"
         ></ion-input>
-        @if (emailControl.hasError('required')) {
+        @if ((submitted() || emailTouched()) && emailErrors()?.required) {
           <ion-note slot="error">L'e-mail est requis.</ion-note>
         }
-        @if (emailControl.hasError('email')) {
+        @if ((submitted() || emailTouched()) && emailErrors()?.email) {
           <ion-note slot="error">Format d'e-mail invalide.</ion-note>
         }
       </ion-item>
 
       <ion-item
         class="form-item"
-        [class.ion-invalid]="passwordControl.invalid && passwordControl.touched"
+        [class.ion-invalid]="(submitted() || passwordTouched()) && passwordErrors()"
         lines="none"
       >
         <ion-label position="floating">Mot de passe</ion-label>
         <ion-input
-          formControlName="password"
           [type]="isPasswordVisible() ? 'text' : 'password'"
           autocomplete="current-password"
           aria-label="Mot de passe"
           aria-required="true"
+          (ionInput)="password.set($event.detail.value ?? '')"
+          (ionBlur)="passwordTouched.set(true)"
         ></ion-input>
         <ion-button
           slot="end"
@@ -52,19 +54,20 @@
         >
           <ion-icon [name]="isPasswordVisible() ? 'eye-off-outline' : 'eye-outline'" aria-hidden="true"></ion-icon>
         </ion-button>
-        @if (passwordControl.hasError('required')) {
+        @if ((submitted() || passwordTouched()) && passwordErrors()?.required) {
           <ion-note slot="error">Le mot de passe est requis.</ion-note>
         }
-        @if (passwordControl.hasError('minlength')) {
+        @if ((submitted() || passwordTouched()) && passwordErrors()?.minlength) {
           <ion-note slot="error">Minimum 6 caractères.</ion-note>
         }
       </ion-item>
 
       <ion-button
         expand="block"
-        type="submit"
+        type="button"
         class="submit-btn"
-        [disabled]="form.invalid && form.touched"
+        [disabled]="isSubmitting()"
+        (click)="submit()"
         aria-label="Se connecter"
       >
         Se connecter

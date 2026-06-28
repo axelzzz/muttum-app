@@ -1,5 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { catchError, finalize, switchMap, tap } from 'rxjs';
 import {
@@ -16,75 +21,117 @@ import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
 import { AuthService } from '../../../core/services/auth.service';
 import { UiService } from '../../../ui/ui.service';
 
-function passwordMatchValidator(group: AbstractControl): ValidationErrors | null {
-  const password = group.get('password')?.value;
-  const confirm = group.get('confirmPassword')?.value;
-  return password === confirm ? null : { passwordMismatch: true };
-}
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
-  imports: [ReactiveFormsModule, RouterLink, IonContent, IonItem, IonLabel, IonInput, IonButton, IonNote, IonIcon],
+  imports: [
+    RouterLink,
+    IonContent,
+    IonItem,
+    IonLabel,
+    IonInput,
+    IonButton,
+    IonNote,
+    IonIcon,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterPage {
-  private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly ui = inject(UiService);
 
   protected readonly isPasswordVisible = signal(false);
+  protected readonly isSubmitting = signal(false);
+  protected readonly submitted = signal(false);
 
-  protected readonly form = this.fb.group(
-    {
-      username: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', Validators.required],
-    },
-    { validators: passwordMatchValidator }
+  protected readonly username = signal('');
+  protected readonly email = signal('');
+  protected readonly password = signal('');
+  protected readonly confirmPassword = signal('');
+
+  protected readonly usernameTouched = signal(false);
+  protected readonly emailTouched = signal(false);
+  protected readonly passwordTouched = signal(false);
+  protected readonly confirmPasswordTouched = signal(false);
+
+  protected readonly usernameErrors = computed(() => {
+    const v = this.username().trim();
+    if (!v) return { required: true };
+    if (v.length < 2) return { minlength: true };
+    return null;
+  });
+
+  protected readonly emailErrors = computed(() => {
+    const v = this.email().trim();
+    if (!v) return { required: true };
+    if (!EMAIL_REGEX.test(v)) return { email: true };
+    return null;
+  });
+
+  protected readonly passwordErrors = computed(() => {
+    const v = this.password();
+    if (!v) return { required: true };
+    if (v.length < 6) return { minlength: true };
+    return null;
+  });
+
+  protected readonly confirmPasswordErrors = computed(() => {
+    if (!this.confirmPassword()) return { required: true };
+    if (this.confirmPassword() !== this.password()) return { mismatch: true };
+    return null;
+  });
+
+  private readonly isFormValid = computed(
+    () =>
+      !this.usernameErrors() &&
+      !this.emailErrors() &&
+      !this.passwordErrors() &&
+      !this.confirmPasswordErrors(),
   );
 
   constructor() {
     addIcons({ eyeOutline, eyeOffOutline });
   }
 
-  protected get usernameControl() { return this.form.get('username')!; }
-  protected get emailControl() { return this.form.get('email')!; }
-  protected get passwordControl() { return this.form.get('password')!; }
-  protected get confirmPasswordControl() { return this.form.get('confirmPassword')!; }
-
   protected togglePasswordVisibility(): void {
-    this.isPasswordVisible.update(v => !v);
+    this.isPasswordVisible.update((v) => !v);
   }
 
   protected submit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+    this.submitted.set(true);
+    if (!this.isFormValid()) return;
+    if (this.isSubmitting()) return;
+    this.isSubmitting.set(true);
 
-    const { confirmPassword: _, ...payload } = this.form.value as {
-      username: string;
-      email: string;
-      password: string;
-      confirmPassword: string;
-    };
-
-    this.ui.showLoading('Création du compte…').pipe(
-      switchMap(loading =>
-        this.authService.register(payload).pipe(
-          tap(() => this.router.navigate(['/tabs/search'])),
-          catchError((err: unknown) => {
-            const message = (err as { status?: number }).status === 409
-              ? 'Cet e-mail est déjà utilisé.'
-              : 'Une erreur est survenue.';
-            return this.ui.showToast(message);
-          }),
-          finalize(() => loading.dismiss())
-        )
+    this.ui
+      .showLoading('Création du compte…')
+      .pipe(
+        switchMap((loading) =>
+          this.authService
+            .register({
+              username: this.username().trim(),
+              email: this.email().trim(),
+              password: this.password(),
+            })
+            .pipe(
+              tap(() => this.router.navigate(['/tabs/search'])),
+              catchError((err: unknown) => {
+                const message =
+                  (err as { status?: number }).status === 409
+                    ? 'Cet e-mail est déjà utilisé.'
+                    : 'Une erreur est survenue.';
+                return this.ui.showToast(message);
+              }),
+              finalize(() => {
+                loading.dismiss();
+                this.isSubmitting.set(false);
+              }),
+            ),
+        ),
       )
-    ).subscribe();
+      .subscribe();
   }
 }
