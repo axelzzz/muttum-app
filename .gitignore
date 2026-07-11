@@ -68,3 +68,6 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Real prod backend config (contains prod API URL, kept local-only)
+/src/environments/environment.prod.ts
