@@ -69,5 +69,16 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# Local dev notes
+/DEPLOY_ANDROID_WIRELESS.md
+/DEPLOY_ANDROID_STORE.md
+/DEPLOY_IOS.md
+
+# Android
+android
+
+# iOS
+ios
+
 # Real prod backend config (contains prod API URL, kept local-only)
 /src/environments/environment.prod.ts
