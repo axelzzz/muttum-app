@@ -82,3 +82,7 @@ ios
 
 # Real prod backend config (contains prod API URL, kept local-only)
 /src/environments/environment.prod.ts
+
+# Muttum keystore
+muttum-release.*
+/keystore.properties
