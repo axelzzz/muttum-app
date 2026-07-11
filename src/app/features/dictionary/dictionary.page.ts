@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -35,6 +36,18 @@ import { SidebarService } from '../../core/services/sidebar.service';
 
 const PAGE_SIZE = 20;
 const FAVORITES_MAX_LIMIT = 500;
+const UNICODE_CANONICAL_DECOMPOSITION = 'NFD';
+
+function stripDiacritics(value: string): string {
+  return value
+    .normalize(UNICODE_CANONICAL_DECOMPOSITION)
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase();
+}
+
+function matchesFilter(entry: UserWord, filterText: string): boolean {
+  return stripDiacritics(entry.word ?? '').includes(stripDiacritics(filterText));
+}
 
 @Component({
   selector: 'app-dictionary',
@@ -66,6 +79,14 @@ export class DictionaryPage implements OnInit {
   protected readonly isLoading = signal(true);
   protected readonly hasMore = signal(true);
   protected readonly showFavoritesOnly = signal(false);
+  protected readonly filterText = signal('');
+
+  protected readonly displayedWords = computed<UserWord[]>(() => {
+    const filterText = this.filterText().trim();
+    return filterText
+      ? this.words().filter((entry) => matchesFilter(entry, filterText))
+      : this.words();
+  });
 
   private currentPage = 1;
   private searchQuery = '';
@@ -86,6 +107,10 @@ export class DictionaryPage implements OnInit {
     this.resetAndLoad(event);
   }
 
+  protected onFilterInput(event: CustomEvent): void {
+    this.filterText.set((event.detail.value as string | undefined) ?? '');
+  }
+
   protected onSearch(event: CustomEvent): void {
     this.searchQuery = (event.detail.value as string | undefined)?.trim() ?? '';
     this.resetAndLoad();
@@ -93,6 +118,7 @@ export class DictionaryPage implements OnInit {
 
   protected clearSearch(): void {
     this.searchQuery = '';
+    this.filterText.set('');
     this.resetAndLoad();
   }
 

@@ -24,9 +24,10 @@
   <ion-toolbar>
     <ion-searchbar
       placeholder="Filtrer mes mots…"
-      debounce="400"
+      debounce="0"
       animated
       show-clear-button="focus"
+      (ionInput)="onFilterInput($event)"
       (ionChange)="onSearch($event)"
       (ionClear)="clearSearch()"
       aria-label="Filtrer les mots de mon dictionnaire"
@@ -62,25 +63,30 @@
     </ul>
   }
 
-  @if (!isLoading() && words().length === 0) {
+  @if (!isLoading() && displayedWords().length === 0) {
     <div class="empty-state" aria-live="polite">
       <div class="empty-icon" aria-hidden="true">
         <ion-icon [name]="showFavoritesOnly() ? 'star-outline' : 'book-outline'"></ion-icon>
       </div>
-      <h2 class="empty-title">
-        {{ showFavoritesOnly() ? 'Aucun favori' : 'Dictionnaire vide' }}
-      </h2>
-      <p class="empty-text">
-        {{ showFavoritesOnly()
-          ? 'Marquez des mots comme favoris depuis la page de recherche.'
-          : 'Commencez par rechercher un mot dans l\'onglet Recherche.' }}
-      </p>
+      @if (words().length > 0) {
+        <h2 class="empty-title">Aucun résultat</h2>
+        <p class="empty-text">Aucun mot ne correspond à « {{ filterText() }} ».</p>
+      } @else {
+        <h2 class="empty-title">
+          {{ showFavoritesOnly() ? 'Aucun favori' : 'Dictionnaire vide' }}
+        </h2>
+        <p class="empty-text">
+          {{ showFavoritesOnly()
+            ? 'Marquez des mots comme favoris depuis la page de recherche.'
+            : 'Commencez par rechercher un mot dans l\'onglet Recherche.' }}
+        </p>
+      }
     </div>
   }
 
-  @if (!isLoading() && words().length > 0) {
+  @if (!isLoading() && displayedWords().length > 0) {
     <ul class="word-list">
-      @for (entry of words(); track entry.id) {
+      @for (entry of displayedWords(); track entry.id) {
         <li class="word-item">
           <button
             class="word-card"
