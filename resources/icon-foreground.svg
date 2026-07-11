@@ -2,9 +2,10 @@
   <text
     x="512" y="700"
     font-family="Georgia, 'Palatino Linotype', Palatino, 'Times New Roman', serif"
-    font-size="520"
+    font-size="460"
     font-weight="normal"
     fill="white"
     text-anchor="middle"
-  >μ</text>
+    letter-spacing="-60"
+  >μτ</text>
 </svg>
