@@ -35,7 +35,6 @@ import { GetApiWordsParams, UserWord } from '../../core/api/model';
 import { SidebarService } from '../../core/services/sidebar.service';
 
 const PAGE_SIZE = 20;
-const FAVORITES_MAX_LIMIT = 500;
 const UNICODE_CANONICAL_DECOMPOSITION = 'NFD';
 
 function stripDiacritics(value: string): string {
@@ -144,13 +143,11 @@ export class DictionaryPage implements OnInit {
   }
 
   private buildQuery(): GetApiWordsParams {
-    if (this.showFavoritesOnly()) {
-      return { limit: FAVORITES_MAX_LIMIT };
-    }
     return {
       page: this.currentPage,
       limit: PAGE_SIZE,
       ...(this.searchQuery && { search: this.searchQuery }),
+      ...(this.showFavoritesOnly() && { favorite: true }),
     };
   }
 
@@ -161,29 +158,22 @@ export class DictionaryPage implements OnInit {
   ): void {
     if (showSpinner) this.isLoading.set(true);
 
-    const isFavoritesMode = this.showFavoritesOnly();
+    const onSettled = (): void => {
+      this.isLoading.set(false);
+      refreshEvent?.detail?.complete?.();
+      infiniteEvent?.target?.complete();
+    };
 
     this.wordService.getApiWords(this.buildQuery()).subscribe({
       next: ({ items = [], pagination }) => {
-        const filtered = isFavoritesMode
-          ? items.filter((w) => w.favorite)
-          : items;
-        const updated = showSpinner ? filtered : [...this.words(), ...filtered];
+        const updated = showSpinner ? items : [...this.words(), ...items];
         this.words.set(updated);
         this.hasMore.set(
-          !isFavoritesMode &&
-            updated.length < (pagination?.total ?? 0) &&
-            items.length === PAGE_SIZE,
+          updated.length < (pagination?.total ?? 0) && items.length === PAGE_SIZE,
         );
-        this.isLoading.set(false);
-        refreshEvent?.detail?.complete?.();
-        infiniteEvent?.target?.complete();
+        onSettled();
       },
-      error: () => {
-        this.isLoading.set(false);
-        refreshEvent?.detail?.complete?.();
-        infiniteEvent?.target?.complete();
-      },
+      error: onSettled,
     });
   }
 }

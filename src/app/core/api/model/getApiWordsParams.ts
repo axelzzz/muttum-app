@@ -13,4 +13,8 @@ limit?: number;
  * Filter by word text
  */
 search?: string;
+/**
+ * Only return words marked as favorite
+ */
+favorite?: boolean;
 };

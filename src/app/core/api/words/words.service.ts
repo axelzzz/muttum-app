@@ -19,13 +19,13 @@ import {
 } from 'rxjs';
 
 import type {
-  DeleteApiWordsId200,
-  GetApiWords200,
+  DeleteResult,
   GetApiWordsParams,
   GetApiWordsSearchParams,
   PatchApiWordsIdBody,
   SearchResult,
-  UserWord
+  UserWord,
+  UserWordList
 } from '../model';
 
 
@@ -176,10 +176,10 @@ export class WordsService {
 /**
  * @summary List words in the user's dictionary
  */
- getApiWords<TData = GetApiWords200>(params?: GetApiWordsParams, options?: HttpClientBodyOptions): Observable<TData>;
- getApiWords<TData = GetApiWords200>(params?: GetApiWordsParams, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
- getApiWords<TData = GetApiWords200>(params?: GetApiWordsParams, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
-  getApiWords<TData = GetApiWords200>(
+ getApiWords<TData = UserWordList>(params?: GetApiWordsParams, options?: HttpClientBodyOptions): Observable<TData>;
+ getApiWords<TData = UserWordList>(params?: GetApiWordsParams, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ getApiWords<TData = UserWordList>(params?: GetApiWordsParams, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  getApiWords<TData = UserWordList>(
     params?: GetApiWordsParams, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     const filteredParams = filterParams({...params, ...options?.params}, new Set<string>([]));
 
@@ -284,10 +284,10 @@ export class WordsService {
 /**
  * @summary Remove a word from the user's list
  */
- deleteApiWordsId<TData = DeleteApiWordsId200>(id: string, options?: HttpClientBodyOptions): Observable<TData>;
- deleteApiWordsId<TData = DeleteApiWordsId200>(id: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
- deleteApiWordsId<TData = DeleteApiWordsId200>(id: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
-  deleteApiWordsId<TData = DeleteApiWordsId200>(
+ deleteApiWordsId<TData = DeleteResult>(id: string, options?: HttpClientBodyOptions): Observable<TData>;
+ deleteApiWordsId<TData = DeleteResult>(id: string, options?: HttpClientEventOptions): Observable<HttpEvent<TData>>;
+ deleteApiWordsId<TData = DeleteResult>(id: string, options?: HttpClientResponseOptions): Observable<AngularHttpResponse<TData>>;
+  deleteApiWordsId<TData = DeleteResult>(
     id: string, options?: HttpClientObserveOptions): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
     if (options?.observe === 'events') {
       return this.http.delete<TData>(
@@ -317,7 +317,7 @@ export class WordsService {
 };
 
 export type GetApiWordsSearchClientResult = NonNullable<SearchResult>
-export type GetApiWordsClientResult = NonNullable<GetApiWords200>
+export type GetApiWordsClientResult = NonNullable<UserWordList>
 export type GetApiWordsIdClientResult = NonNullable<UserWord>
 export type PatchApiWordsIdClientResult = NonNullable<UserWord>
-export type DeleteApiWordsIdClientResult = NonNullable<DeleteApiWordsId200>
+export type DeleteApiWordsIdClientResult = NonNullable<DeleteResult>

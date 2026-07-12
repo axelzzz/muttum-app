@@ -1,7 +1,7 @@
 
-export type GetApiWords200Pagination = {
+export interface Pagination {
   page?: number;
   limit?: number;
   total?: number;
   pages?: number;
-};
+}
