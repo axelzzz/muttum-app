@@ -2,7 +2,15 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthResponse, LoginPayload, RegisterPayload, User } from '../models/user.model';
+import {
+  AuthResponse,
+  ForgotPasswordPayload,
+  LoginPayload,
+  MessageResponse,
+  RegisterPayload,
+  ResetPasswordPayload,
+  User,
+} from '../models/user.model';
 
 const TOKEN_KEY = 'muttum_token';
 const USER_KEY = 'muttum_user';
@@ -33,6 +41,14 @@ export class AuthService {
     return this.http
       .get<{ user: User }>(`${this.baseUrl}/me`)
       .pipe(tap(({ user }) => this._currentUser.set(user)));
+  }
+
+  forgotPassword(payload: ForgotPasswordPayload): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.baseUrl}/forgot-password`, payload);
+  }
+
+  resetPassword(payload: ResetPasswordPayload): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.baseUrl}/reset-password`, payload);
   }
 
   logout(): void {

@@ -1,1 +1,10 @@
 @use '../auth-layout' as *;
+
+.forgot-password-link {
+  align-self: center;
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  --color: var(--ion-color-medium);
+}
+
