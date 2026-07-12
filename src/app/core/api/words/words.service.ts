@@ -11,7 +11,8 @@ import type {
 
 import {
   Injectable,
-  inject
+  inject,
+  signal
 } from '@angular/core';
 
 import {
@@ -135,9 +136,26 @@ function filterParams(
 
 
 
+export type WordUpdate =
+  | { type: 'updated'; word: UserWord }
+  | { type: 'removed'; id: string };
+
 @Injectable({ providedIn: 'root' })
 export class WordsService {
   private readonly http = inject(HttpClient);
+
+  // Lets other pages patch their own state without a refetch — needed because leaving the tabs
+  // outlet for /word/:id and back never re-fires ionViewWillEnter on the tab's active child route.
+  private readonly latestUpdateState = signal<WordUpdate | null>(null);
+  readonly latestUpdate = this.latestUpdateState.asReadonly();
+
+  notifyWordUpdated(word: UserWord): void {
+    this.latestUpdateState.set({ type: 'updated', word });
+  }
+
+  notifyWordRemoved(id: string): void {
+    this.latestUpdateState.set({ type: 'removed', id });
+  }
 /**
  * @summary Search for a word and add it to the user's list
  */

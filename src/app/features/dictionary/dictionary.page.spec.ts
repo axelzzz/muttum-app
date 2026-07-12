@@ -1,9 +1,9 @@
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
 import { DictionaryPage } from './dictionary.page';
-import { WordsService } from '../../core/api/words/words.service';
+import { WordsService, WordUpdate } from '../../core/api/words/words.service';
 import { SidebarService } from '../../core/services/sidebar.service';
 import { GetApiWordsParams, UserWord, UserWordList } from '../../core/api/model';
 
@@ -20,11 +20,16 @@ describe('DictionaryPage', () => {
   let fixture: ComponentFixture<DictionaryPage>;
   let getApiWords: jest.MockedFunction<GetApiWordsFn>;
   let sidebarService: jest.Mocked<Pick<SidebarService, 'toggle'>>;
+  let latestUpdate: WritableSignal<WordUpdate | null>;
 
   beforeEach(async () => {
     getApiWords = jest.fn();
     sidebarService = { toggle: jest.fn() };
-    const wordsService = { getApiWords } as unknown as Pick<WordsService, 'getApiWords'>;
+    latestUpdate = signal<WordUpdate | null>(null);
+    const wordsService = { getApiWords, latestUpdate } as unknown as Pick<
+      WordsService,
+      'getApiWords' | 'latestUpdate'
+    >;
 
     await TestBed.configureTestingModule({
       imports: [DictionaryPage],
@@ -132,6 +137,70 @@ describe('DictionaryPage', () => {
 
       expect(field('isLoading')()).toBe(false);
       expect(field('words')()).toEqual([]);
+    });
+  });
+
+  describe('reacting to WordsService.latestUpdate', () => {
+    it('patches the matching entry in place when a word is updated', () => {
+      const items = [userWord('1', { favorite: false }), userWord('2', { favorite: false })];
+      getApiWords.mockReturnValue(of({ items, pagination: { total: 2 } }));
+
+      createComponent();
+      fixture.detectChanges();
+
+      latestUpdate.set({ type: 'updated', word: userWord('1', { favorite: true }) });
+      TestBed.tick();
+
+      expect(field('words')()).toEqual([
+        userWord('1', { favorite: true }),
+        userWord('2', { favorite: false }),
+      ]);
+    });
+
+    it('removes the entry when a word is deleted', () => {
+      const items = [userWord('1'), userWord('2')];
+      getApiWords.mockReturnValue(of({ items, pagination: { total: 2 } }));
+
+      createComponent();
+      fixture.detectChanges();
+
+      latestUpdate.set({ type: 'removed', id: '1' });
+      TestBed.tick();
+
+      expect(field('words')()).toEqual([userWord('2')]);
+    });
+
+    it('drops an entry from a favorites-only list once it is un-favorited', () => {
+      const items = [userWord('1', { favorite: true }), userWord('2', { favorite: true })];
+      getApiWords.mockReturnValue(of({ items, pagination: { total: 2 } }));
+
+      createComponent();
+      fixture.detectChanges();
+      toggleFavorites();
+      fixture.detectChanges();
+
+      latestUpdate.set({ type: 'updated', word: userWord('1', { favorite: false }) });
+      TestBed.tick();
+
+      expect(field('words')()).toEqual([userWord('2', { favorite: true })]);
+    });
+
+    it('keeps a still-favorite entry when a different word is updated on a favorites-only list', () => {
+      const items = [userWord('1', { favorite: true }), userWord('2', { favorite: true })];
+      getApiWords.mockReturnValue(of({ items, pagination: { total: 2 } }));
+
+      createComponent();
+      fixture.detectChanges();
+      toggleFavorites();
+      fixture.detectChanges();
+
+      latestUpdate.set({ type: 'updated', word: userWord('2', { favorite: true, notes: 'note' }) });
+      TestBed.tick();
+
+      expect(field('words')()).toEqual([
+        userWord('1', { favorite: true }),
+        userWord('2', { favorite: true, notes: 'note' }),
+      ]);
     });
   });
 });

@@ -87,7 +87,7 @@ export class WordDetailPage implements OnInit {
     this.wordService
       .patchApiWordsId(word.id, { favorite: !word.favorite })
       .subscribe({
-        next: (updated) => this.userWord.set(updated as LoadedWord),
+        next: (updated) => this.applyUpdate(updated),
       });
   }
 
@@ -95,7 +95,7 @@ export class WordDetailPage implements OnInit {
     const word = this.userWord();
     if (!word) return;
     this.wordService.patchApiWordsId(word.id, { notes }).subscribe({
-      next: (updated) => this.userWord.set(updated as LoadedWord),
+      next: (updated) => this.applyUpdate(updated),
     });
   }
 
@@ -105,7 +105,7 @@ export class WordDetailPage implements OnInit {
     this.wordService
       .patchApiWordsId(word.id, { tags: [...(word.tags ?? []), tag] })
       .subscribe({
-        next: (updated) => this.userWord.set(updated as LoadedWord),
+        next: (updated) => this.applyUpdate(updated),
       });
   }
 
@@ -117,8 +117,13 @@ export class WordDetailPage implements OnInit {
         tags: (word.tags ?? []).filter((t) => t !== tag),
       })
       .subscribe({
-        next: (updated) => this.userWord.set(updated as LoadedWord),
+        next: (updated) => this.applyUpdate(updated),
       });
+  }
+
+  private applyUpdate(updated: UserWord): void {
+    this.userWord.set(updated as LoadedWord);
+    this.wordService.notifyWordUpdated(updated);
   }
 
   protected confirmDelete(): void {
@@ -135,6 +140,7 @@ export class WordDetailPage implements OnInit {
         filter((confirmed) => confirmed),
         switchMap(() => this.wordService.deleteApiWordsId(word.id)),
         tap(() => {
+          this.wordService.notifyWordRemoved(word.id);
           this.ui.showToast('Mot supprimé.', 'success').subscribe();
           this.router.navigate(['/tabs/dictionary']);
         }),

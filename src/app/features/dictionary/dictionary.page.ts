@@ -3,6 +3,7 @@ import {
   Component,
   OnInit,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
@@ -92,6 +93,27 @@ export class DictionaryPage implements OnInit {
 
   constructor() {
     addIcons({ star, starOutline, bookOutline, chevronForwardOutline });
+
+    effect(() => {
+      const update = this.wordService.latestUpdate();
+      if (!update) return;
+
+      this.words.update((list) => {
+        if (update.type === 'removed') {
+          return list.filter((entry) => entry.id !== update.id);
+        }
+
+        const merged = list.map((entry) =>
+          entry.id === update.word.id ? { ...entry, ...update.word } : entry,
+        );
+
+        // A favorites-only list was fetched with `favorite: true`, so an entry that
+        // just got un-favorited must drop out instead of lingering until a reload.
+        return this.showFavoritesOnly()
+          ? merged.filter((entry) => entry.favorite)
+          : merged;
+      });
+    });
   }
 
   ngOnInit(): void {
