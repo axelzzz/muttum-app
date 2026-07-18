@@ -18,7 +18,9 @@ describe('ForgotPasswordPage', () => {
   beforeEach(async () => {
     authService = { forgotPassword: jest.fn() };
     uiService = { showLoading: jest.fn(), showToast: jest.fn() };
-    uiService.showLoading.mockReturnValue(of({ dismiss: jest.fn() } as any));
+    uiService.showLoading.mockReturnValue(
+      of({ dismiss: jest.fn() } as unknown as HTMLIonLoadingElement),
+    );
     authService.forgotPassword.mockReturnValue(of(VALID_RESPONSE));
 
     await TestBed.configureTestingModule({
@@ -40,7 +42,7 @@ describe('ForgotPasswordPage', () => {
   const field = (name: string) => (component as any)[name];
 
   function submit(): void {
-    (component as any).submit();
+    (component as unknown as { submit: () => void }).submit();
     fixture.detectChanges();
   }
 

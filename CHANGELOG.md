@@ -15,6 +15,8 @@ Change history for `muttum-app`, generated from Git commits and grouped by compo
 ### Fixed
 
 - Style and sidebar (`fef8a2e`)
+- `npm run lint` failing with "could not find config file" by migrating ESLint config to flat config (`eslint.config.js`) for ESLint 9
+- Removed remaining `@typescript-eslint/no-explicit-any` lint errors in auth spec files and `zone-flags.ts`, previously undetected because lint wasn't running
 
 ### Documentation
 

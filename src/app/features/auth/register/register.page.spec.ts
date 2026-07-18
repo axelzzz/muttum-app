@@ -22,7 +22,9 @@ describe('RegisterPage', () => {
   beforeEach(async () => {
     authService = { register: jest.fn() };
     uiService = { showLoading: jest.fn(), showToast: jest.fn() };
-    uiService.showLoading.mockReturnValue(of({ dismiss: jest.fn() } as any));
+    uiService.showLoading.mockReturnValue(
+      of({ dismiss: jest.fn() } as unknown as HTMLIonLoadingElement),
+    );
     authService.register.mockReturnValue(of(VALID_AUTH_RESPONSE));
 
     await TestBed.configureTestingModule({
@@ -47,7 +49,7 @@ describe('RegisterPage', () => {
   const field = (name: string) => (component as any)[name];
 
   function submit(): void {
-    (component as any).submit();
+    (component as unknown as { submit: () => void }).submit();
     fixture.detectChanges();
   }
 

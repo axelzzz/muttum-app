@@ -19,7 +19,9 @@ describe('ResetPasswordPage', () => {
   async function setup(token: string | null): Promise<void> {
     authService = { resetPassword: jest.fn() };
     uiService = { showLoading: jest.fn(), showToast: jest.fn() };
-    uiService.showLoading.mockReturnValue(of({ dismiss: jest.fn() } as any));
+    uiService.showLoading.mockReturnValue(
+      of({ dismiss: jest.fn() } as unknown as HTMLIonLoadingElement),
+    );
     authService.resetPassword.mockReturnValue(of(VALID_RESPONSE));
 
     await TestBed.configureTestingModule({
@@ -48,7 +50,7 @@ describe('ResetPasswordPage', () => {
   const field = (name: string) => (component as any)[name];
 
   function submit(): void {
-    (component as any).submit();
+    (component as unknown as { submit: () => void }).submit();
     fixture.detectChanges();
   }
 
