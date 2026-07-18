@@ -6,4 +6,11 @@ module.exports = {
   moduleNameMapper: {
     '^ionicons/components/(.*)$': '<rootDir>/node_modules/ionicons/components/$1',
   },
+  collectCoverageFrom: [
+    'src/app/**/*.ts',
+    '!src/app/**/*.spec.ts',
+    '!src/app/**/*.module.ts',
+  ],
+  coverageDirectory: 'coverage',
+  coverageReporters: ['lcov', 'text-summary'],
 };

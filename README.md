@@ -1,5 +1,8 @@
 # Muttum App
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=axelzzz_muttum-app&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=axelzzz_muttum-app)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=axelzzz_muttum-app&metric=coverage)](https://sonarcloud.io/summary/new_code?id=axelzzz_muttum-app)
+
 Mobile French dictionary and vocabulary tracker built with Ionic/Angular and Capacitor.
 
 ## Prerequisites

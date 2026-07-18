@@ -24,6 +24,8 @@ Change history for `muttum-app`, generated from Git commits and grouped by compo
 
 ### Other
 
+- Extract a reusable `build` pipeline (lint + build + test + coverage + Sonar scan), called as a prerequisite by the deploy and release pipelines instead of duplicating those steps
+- Add SonarCloud analysis (coverage + quality gate) and README badges
 - Theme and logo update (`fe05b72`)
 - Renamed the app to "muttum" (`dbaa59f`)
 - Local config to target the prod backend, added iOS support (`ebaae73`)
