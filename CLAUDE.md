@@ -58,3 +58,7 @@ The API always returns `UserWordPopulated` (with `wordId` resolved to a full `Wo
 ### Styling
 
 Global styles in `src/global.scss`; Ionic CSS variables in `src/theme/variables.scss`. Dark mode is toggled by adding the `ion-palette-dark` class to `<html>` — do not use `[data-theme]` or media queries for dark mode logic; the `ThemeService` owns that toggle.
+
+## Changelog
+
+`CHANGELOG.md` must be updated for every feature, fix, or technical/refactor change made in this repo — not just at release time. Add an entry under the current unreleased version section, in the matching category (`Added`, `Fixed`, `Documentation`, `Other`, etc.), one line per change, with its commit hash once committed. Entries are written in English. Do not skip this step, even for small changes.

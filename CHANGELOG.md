@@ -1,37 +1,37 @@
 # Changelog
 
-Historique des modifications de `muttum-app`, généré à partir des commits Git et regroupé par version de composant (`package.json`).
+Change history for `muttum-app`, generated from Git commits and grouped by component version (`package.json`).
 
-## [1.0.0] — non publiée
+## [1.0.0] — unreleased
 
-> Version majeure incrémentée manuellement (0.0.1 → 1.0.0) ; les modifications ci-dessous sont celles accumulées jusqu'ici sous cette version.
+> Major version bumped manually (0.0.1 → 1.0.0); the changes below are those accumulated so far under this version.
 
-### Ajout
+### Added
 
-- Filtrage à la volée des mots affichés dans l'onglet "Mon dictionnaire" (`5df6ae0`)
-- Icônes de l'application Android (`c433abb`)
-- Commit initial (`d1a81a0`, `9ae1911`)
+- Live filtering of words shown in the "My dictionary" tab (`5df6ae0`)
+- Android app icons (`c433abb`)
+- Initial commit (`d1a81a0`, `9ae1911`)
 
-### Correction
+### Fixed
 
-- Style et barre latérale (`fef8a2e`)
+- Style and sidebar (`fef8a2e`)
 
 ### Documentation
 
-- Mise à jour de la doc (MongoDB → PostgreSQL) (`bf485e2`)
+- Doc update (MongoDB → PostgreSQL) (`bf485e2`)
 
-### Divers
+### Other
 
-- Mise à jour du thème et du logo (`fe05b72`)
-- Renommage de l'application en "muttum" (`dbaa59f`)
-- Configuration locale pour cibler le backend de prod, ajout du support iOS (`ebaae73`)
-- Retrait de `environment.prod.ts` du suivi Git, ajout d'un fichier `.example` (`b3e9c8d`)
-- Nouveau logo (`2f09b69`)
-- Migration vers Jest + formulaires à base de signals (`32795a9`)
-- Amélioration de l'accessibilité (`b4e8bd4`)
-- Utilisation d'Observables plutôt que de Promises (`d23fc3c`)
-- Refactorisation vers des "dumb components" (`3720954`)
-- Ajout de la conteneurisation Docker (`73f3516`)
-- Génération du client API via Orval à partir du backend (`ed31b35`)
-- Utilisation de fonctionnalités Angular modernes (`6a682a1`)
-- Migration vers Angular 22 (`3f7c628`)
+- Theme and logo update (`fe05b72`)
+- Renamed the app to "muttum" (`dbaa59f`)
+- Local config to target the prod backend, added iOS support (`ebaae73`)
+- Removed `environment.prod.ts` from Git tracking, added an `.example` file (`b3e9c8d`)
+- New logo (`2f09b69`)
+- Migration to Jest + signal-based forms (`32795a9`)
+- Accessibility improvements (`b4e8bd4`)
+- Use Observables instead of Promises (`d23fc3c`)
+- Refactor into "dumb components" (`3720954`)
+- Added Docker containerization (`73f3516`)
+- API client generation via Orval from the backend (`ed31b35`)
+- Use of modern Angular features (`6a682a1`)
+- Migration to Angular 22 (`3f7c628`)
