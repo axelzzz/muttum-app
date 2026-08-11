@@ -31,6 +31,7 @@ Change history for `muttum-app`, generated from Git commits and grouped by compo
 
 ### Other
 
+- Show a single usage example per definition instead of a list, matching the backend's change to store only the first Wiktionary example
 - Chain the release pipeline into deploy: it now calls `deploy-android.yml` with the exact release commit SHA once the release commit is pushed, instead of relying on the tag push to trigger it separately
 - Extract a reusable `build` pipeline (lint + build + test + coverage + Sonar scan), called as a prerequisite by the deploy and release pipelines instead of duplicating those steps
 - Add SonarCloud analysis (coverage + quality gate) and README badges

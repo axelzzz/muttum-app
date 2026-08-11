@@ -88,12 +88,8 @@
             <span class="pos-chip">{{ def.partOfSpeech }}</span>
             }
             <p class="definition-text">{{ def.definition }}</p>
-            @if ((def.examples?.length ?? 0) > 0) {
-            <ul class="examples-list">
-              @for (ex of def.examples ?? []; track ex) {
-              <li class="example-item">{{ ex }}</li>
-              }
-            </ul>
+            @if (def.example) {
+            <p class="example-text">{{ def.example }}</p>
             }
           </div>
           @if (!last) {
