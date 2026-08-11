@@ -14,6 +14,7 @@ Change history for `muttum-app`, generated from Git commits and grouped by compo
 
 ### Fixed
 
+- Replaced the placeholder "M" badge on the account creation page with the official Greek-lettered wordmark logo (`assets/logo.svg`)
 - Style and sidebar (`fef8a2e`)
 - `npm run lint` failing with "could not find config file" by migrating ESLint config to flat config (`eslint.config.js`) for ESLint 9
 - Removed remaining `@typescript-eslint/no-explicit-any` lint errors in auth spec files and `zone-flags.ts`, previously undetected because lint wasn't running
@@ -24,6 +25,7 @@ Change history for `muttum-app`, generated from Git commits and grouped by compo
 
 ### Other
 
+- Chain the release pipeline into deploy: it now calls `deploy-android.yml` with the exact release commit SHA once the release commit is pushed, instead of relying on the tag push to trigger it separately
 - Extract a reusable `build` pipeline (lint + build + test + coverage + Sonar scan), called as a prerequisite by the deploy and release pipelines instead of duplicating those steps
 - Add SonarCloud analysis (coverage + quality gate) and README badges
 - Theme and logo update (`fe05b72`)
