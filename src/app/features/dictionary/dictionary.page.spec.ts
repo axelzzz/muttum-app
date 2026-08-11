@@ -1,7 +1,7 @@
 import { CUSTOM_ELEMENTS_SCHEMA, signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, of, Subject, throwError } from 'rxjs';
 import { DictionaryPage } from './dictionary.page';
 import { WordsService, WordUpdate } from '../../core/api/words/words.service';
 import { SidebarService } from '../../core/services/sidebar.service';
@@ -53,6 +53,11 @@ describe('DictionaryPage', () => {
   function toggleFavorites(): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (component as any).toggleFavorites();
+  }
+
+  function searchInput(value: string): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (component as any).onSearchInput({ detail: { value } } as CustomEvent);
   }
 
   it('creates the component', () => {
@@ -137,6 +142,93 @@ describe('DictionaryPage', () => {
 
       expect(field('isLoading')()).toBe(false);
       expect(field('words')()).toEqual([]);
+    });
+  });
+
+  describe('search', () => {
+    it('requests the search term from the server and resets pagination to page 1', () => {
+      getApiWords.mockReturnValue(
+        of({ items: [userWord('1')], pagination: { page: 1, total: 21, pages: 2 } }),
+      );
+
+      createComponent();
+      fixture.detectChanges();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (component as any).loadMore({ target: { complete: jest.fn() } });
+      fixture.detectChanges();
+
+      searchInput('pomme');
+      fixture.detectChanges();
+
+      expect(getApiWords).toHaveBeenLastCalledWith({
+        page: 1,
+        limit: PAGE_SIZE,
+        search: 'pomme',
+      });
+    });
+
+    it('keeps the previous results visible while a new search request is in flight', () => {
+      const initialItems = [userWord('1')];
+      getApiWords.mockReturnValue(of({ items: initialItems, pagination: { total: 1 } }));
+
+      createComponent();
+      fixture.detectChanges();
+
+      const pending = new Subject<UserWordList>();
+      getApiWords.mockReturnValue(pending as unknown as Observable<UserWordList>);
+
+      searchInput('xyz');
+      fixture.detectChanges();
+
+      expect(field('isSearching')()).toBe(true);
+      expect(field('words')()).toEqual(initialItems);
+
+      pending.next({ items: [], pagination: { total: 0 } });
+      pending.complete();
+      fixture.detectChanges();
+
+      expect(field('isSearching')()).toBe(false);
+      expect(field('words')()).toEqual([]);
+    });
+
+    it('ignores a stale search response that resolves after a newer one', () => {
+      getApiWords.mockReturnValue(of({ items: [userWord('1')], pagination: { total: 1 } }));
+      createComponent();
+      fixture.detectChanges();
+
+      const staleResponse = new Subject<UserWordList>();
+      const latestResponse = new Subject<UserWordList>();
+      getApiWords.mockReturnValueOnce(staleResponse as unknown as Observable<UserWordList>);
+      getApiWords.mockReturnValueOnce(latestResponse as unknown as Observable<UserWordList>);
+
+      searchInput('ab');
+      fixture.detectChanges();
+      searchInput('abc');
+      fixture.detectChanges();
+
+      latestResponse.next({ items: [userWord('2')], pagination: { total: 1 } });
+      latestResponse.complete();
+      fixture.detectChanges();
+
+      staleResponse.next({ items: [userWord('99')], pagination: { total: 1 } });
+      staleResponse.complete();
+      fixture.detectChanges();
+
+      expect(field('words')()).toEqual([userWord('2')]);
+    });
+
+    it('clears the search term and reloads on clear', () => {
+      getApiWords.mockReturnValue(of({ items: [], pagination: { total: 0 } }));
+
+      createComponent();
+      fixture.detectChanges();
+      searchInput('pomme');
+      fixture.detectChanges();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (component as any).clearSearch();
+      fixture.detectChanges();
+
+      expect(getApiWords).toHaveBeenLastCalledWith({ page: 1, limit: PAGE_SIZE });
     });
   });
 

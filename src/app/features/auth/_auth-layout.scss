@@ -88,6 +88,14 @@
   }
 }
 
+.field-error-text {
+  margin: 0.375rem 0 0;
+  padding: 0 0.875rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--ion-color-danger);
+}
+
 .form-item {
   --background: var(--muttum-auth-card);
   --border-radius: 10px;

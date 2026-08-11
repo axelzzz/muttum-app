@@ -1,7 +1,8 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { ResetPasswordPage } from './reset-password.page';
 import { AuthService } from '../../../core/services/auth.service';
 import { UiService } from '../../../ui/ui.service';
@@ -22,6 +23,7 @@ describe('ResetPasswordPage', () => {
     uiService.showLoading.mockReturnValue(
       of({ dismiss: jest.fn() } as unknown as HTMLIonLoadingElement),
     );
+    uiService.showToast.mockReturnValue(of(undefined));
     authService.resetPassword.mockReturnValue(of(VALID_RESPONSE));
 
     await TestBed.configureTestingModule({
@@ -55,7 +57,7 @@ describe('ResetPasswordPage', () => {
   }
 
   function errorTexts(): string[] {
-    return Array.from<Element>(fixture.nativeElement.querySelectorAll('ion-note[slot="error"]')).map(
+    return Array.from<Element>(fixture.nativeElement.querySelectorAll('.field-error-text')).map(
       (el) => el.textContent?.trim() ?? '',
     );
   }
@@ -116,6 +118,43 @@ describe('ResetPasswordPage', () => {
         field('confirmPassword').set('secret123');
         submit();
         expect(router.navigate).toHaveBeenCalledWith(['/auth/login']);
+      });
+
+      it('shows an invalid-link toast when the token is invalid or expired (400 without details)', () => {
+        authService.resetPassword.mockReturnValue(
+          throwError(() => new HttpErrorResponse({ status: 400, error: { error: 'Invalid or expired token' } })),
+        );
+        field('password').set('secret123');
+        field('confirmPassword').set('secret123');
+        submit();
+        expect(uiService.showToast).toHaveBeenCalledWith('Ce lien est invalide ou a expiré.');
+      });
+
+      it('shows the password error under the field when the server rejects it with a 400 detail', () => {
+        authService.resetPassword.mockReturnValue(
+          throwError(
+            () =>
+              new HttpErrorResponse({
+                status: 400,
+                error: { error: 'Validation failed', details: [{ field: 'password', message: 'Invalid value' }] },
+              }),
+          ),
+        );
+        field('password').set('secret123');
+        field('confirmPassword').set('secret123');
+        submit();
+        expect(errorTexts()).toContain('Le mot de passe doit contenir entre 6 et 128 caractères.');
+        expect(uiService.showToast).not.toHaveBeenCalled();
+      });
+
+      it('shows a rate-limit toast when the reset fails with 429', () => {
+        authService.resetPassword.mockReturnValue(
+          throwError(() => new HttpErrorResponse({ status: 429 })),
+        );
+        field('password').set('secret123');
+        field('confirmPassword').set('secret123');
+        submit();
+        expect(uiService.showToast).toHaveBeenCalledWith('Trop de tentatives. Réessayez dans quelques minutes.');
       });
     });
   });

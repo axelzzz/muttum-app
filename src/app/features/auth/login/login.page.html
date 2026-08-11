@@ -12,11 +12,7 @@
           class="form-field"
           [class.field-invalid]="(submitted() || emailTouched()) && emailErrors()"
         >
-          <ion-item
-            class="form-item"
-            [class.ion-invalid]="(submitted() || emailTouched()) && emailErrors()"
-            lines="none"
-          >
+          <ion-item class="form-item" lines="none">
             <ion-label position="floating">Adresse e-mail</ion-label>
             <ion-input
               type="email"
@@ -24,33 +20,28 @@
               inputmode="email"
               aria-label="Adresse e-mail"
               aria-required="true"
+              [attr.aria-describedby]="emailErrorMessage() ? 'login-email-error' : null"
               (ionInput)="email.set($event.detail.value ?? '')"
               (ionBlur)="emailTouched.set(true)"
             ></ion-input>
-            @if ((submitted() || emailTouched()) && emailErrors()?.required) {
-              <ion-note slot="error">L'e-mail est requis.</ion-note>
-            }
-            @if ((submitted() || emailTouched()) && emailErrors()?.email) {
-              <ion-note slot="error">Format d'e-mail invalide.</ion-note>
-            }
           </ion-item>
+          @if (emailErrorMessage(); as message) {
+            <p id="login-email-error" class="field-error-text" role="alert">{{ message }}</p>
+          }
         </div>
 
         <div
           class="form-field"
           [class.field-invalid]="(submitted() || passwordTouched()) && passwordErrors()"
         >
-          <ion-item
-            class="form-item"
-            [class.ion-invalid]="(submitted() || passwordTouched()) && passwordErrors()"
-            lines="none"
-          >
+          <ion-item class="form-item" lines="none">
             <ion-label position="floating">Mot de passe</ion-label>
             <ion-input
               [type]="isPasswordVisible() ? 'text' : 'password'"
               autocomplete="current-password"
               aria-label="Mot de passe"
               aria-required="true"
+              [attr.aria-describedby]="passwordErrorMessage() ? 'login-password-error' : null"
               (ionInput)="password.set($event.detail.value ?? '')"
               (ionBlur)="passwordTouched.set(true)"
             ></ion-input>
@@ -64,13 +55,10 @@
             >
               <ion-icon [name]="isPasswordVisible() ? 'eye-off-outline' : 'eye-outline'" aria-hidden="true"></ion-icon>
             </ion-button>
-            @if ((submitted() || passwordTouched()) && passwordErrors()?.required) {
-              <ion-note slot="error">Le mot de passe est requis.</ion-note>
-            }
-            @if ((submitted() || passwordTouched()) && passwordErrors()?.minlength) {
-              <ion-note slot="error">Minimum 6 caractères.</ion-note>
-            }
           </ion-item>
+          @if (passwordErrorMessage(); as message) {
+            <p id="login-password-error" class="field-error-text" role="alert">{{ message }}</p>
+          }
         </div>
 
         <ion-button

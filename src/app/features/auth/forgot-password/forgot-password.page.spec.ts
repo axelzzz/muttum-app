@@ -1,7 +1,8 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpErrorResponse } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { ForgotPasswordPage } from './forgot-password.page';
 import { AuthService } from '../../../core/services/auth.service';
 import { UiService } from '../../../ui/ui.service';
@@ -21,6 +22,7 @@ describe('ForgotPasswordPage', () => {
     uiService.showLoading.mockReturnValue(
       of({ dismiss: jest.fn() } as unknown as HTMLIonLoadingElement),
     );
+    uiService.showToast.mockReturnValue(of(undefined));
     authService.forgotPassword.mockReturnValue(of(VALID_RESPONSE));
 
     await TestBed.configureTestingModule({
@@ -47,7 +49,7 @@ describe('ForgotPasswordPage', () => {
   }
 
   function errorTexts(): string[] {
-    return Array.from<Element>(fixture.nativeElement.querySelectorAll('ion-note[slot="error"]')).map(
+    return Array.from<Element>(fixture.nativeElement.querySelectorAll('.field-error-text')).map(
       (el) => el.textContent?.trim() ?? '',
     );
   }
@@ -108,6 +110,31 @@ describe('ForgotPasswordPage', () => {
       field('email').set('alice@example.com');
       submit();
       expect(field('requestSent')()).toBe(true);
+    });
+
+    it('shows a rate-limit toast when the request fails with 429', () => {
+      authService.forgotPassword.mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status: 429 })),
+      );
+      field('email').set('alice@example.com');
+      submit();
+      expect(uiService.showToast).toHaveBeenCalledWith('Trop de tentatives. Réessayez dans quelques minutes.');
+    });
+
+    it('shows the email format error under the field when the server rejects it with a 400 detail', () => {
+      authService.forgotPassword.mockReturnValue(
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 400,
+              error: { error: 'Validation failed', details: [{ field: 'email', message: 'Invalid value' }] },
+            }),
+        ),
+      );
+      field('email').set('alice@example.com');
+      submit();
+      expect(errorTexts()).toContain("Format d'e-mail invalide.");
+      expect(uiService.showToast).not.toHaveBeenCalled();
     });
   });
 });

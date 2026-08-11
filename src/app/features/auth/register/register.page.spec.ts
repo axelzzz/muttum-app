@@ -1,7 +1,8 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpErrorResponse } from '@angular/common/http';
 import { provideRouter, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { RegisterPage } from './register.page';
 import { AuthService } from '../../../core/services/auth.service';
 import { UiService } from '../../../ui/ui.service';
@@ -25,6 +26,7 @@ describe('RegisterPage', () => {
     uiService.showLoading.mockReturnValue(
       of({ dismiss: jest.fn() } as unknown as HTMLIonLoadingElement),
     );
+    uiService.showToast.mockReturnValue(of(undefined));
     authService.register.mockReturnValue(of(VALID_AUTH_RESPONSE));
 
     await TestBed.configureTestingModule({
@@ -54,9 +56,9 @@ describe('RegisterPage', () => {
   }
 
   function errorTexts(): string[] {
-    return Array.from<Element>(
-      fixture.nativeElement.querySelectorAll('ion-note[slot="error"]')
-    ).map((el) => el.textContent?.trim() ?? '');
+    return Array.from<Element>(fixture.nativeElement.querySelectorAll('.field-error-text')).map(
+      (el) => el.textContent?.trim() ?? '',
+    );
   }
 
   it('creates the component', () => {
@@ -78,6 +80,11 @@ describe('RegisterPage', () => {
         field('username').set('alice');
         expect(field('usernameErrors')()).toBeNull();
       });
+
+      it('returns { maxlength: true } when username is longer than 50 characters', () => {
+        field('username').set('a'.repeat(51));
+        expect(field('usernameErrors')()).toEqual({ maxlength: true });
+      });
     });
 
     describe('emailErrors', () => {
@@ -94,6 +101,12 @@ describe('RegisterPage', () => {
         field('email').set('alice@example.com');
         expect(field('emailErrors')()).toBeNull();
       });
+
+      it('returns { server: true } when the server rejected the email', () => {
+        field('email').set('alice@example.com');
+        field('emailServerError').set('Cet e-mail est déjà utilisé.');
+        expect(field('emailErrors')()).toEqual({ server: true });
+      });
     });
 
     describe('passwordErrors', () => {
@@ -109,6 +122,11 @@ describe('RegisterPage', () => {
       it('returns null when password is at least 6 characters', () => {
         field('password').set('secret');
         expect(field('passwordErrors')()).toBeNull();
+      });
+
+      it('returns { maxlength: true } when password is longer than 128 characters', () => {
+        field('password').set('a'.repeat(129));
+        expect(field('passwordErrors')()).toEqual({ maxlength: true });
       });
     });
 
@@ -216,6 +234,106 @@ describe('RegisterPage', () => {
       field('confirmPassword').set('secret123');
       submit();
       expect(router.navigate).toHaveBeenCalledWith(['/tabs/search']);
+    });
+
+    it('shows the email-taken error under the email field when register fails with 409', () => {
+      authService.register.mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status: 409 })),
+      );
+      field('username').set('alice');
+      field('email').set('alice@example.com');
+      field('password').set('secret123');
+      field('confirmPassword').set('secret123');
+      submit();
+
+      expect(errorTexts()).toContain('Cet e-mail est déjà utilisé.');
+      expect(router.navigate).not.toHaveBeenCalled();
+      expect(uiService.showToast).not.toHaveBeenCalled();
+    });
+
+    it('shows a generic toast when register fails with a non-409 error', () => {
+      authService.register.mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status: 500 })),
+      );
+      field('username').set('alice');
+      field('email').set('alice@example.com');
+      field('password').set('secret123');
+      field('confirmPassword').set('secret123');
+      submit();
+
+      expect(uiService.showToast).toHaveBeenCalledWith('Une erreur est survenue.');
+      expect(errorTexts()).not.toContain('Cet e-mail est déjà utilisé.');
+    });
+
+    it('clears the email-taken error once the user edits the email again', () => {
+      authService.register.mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status: 409 })),
+      );
+      field('username').set('alice');
+      field('email').set('alice@example.com');
+      field('password').set('secret123');
+      field('confirmPassword').set('secret123');
+      submit();
+      expect(errorTexts()).toContain('Cet e-mail est déjà utilisé.');
+
+      (component as unknown as { onEmailInput: (value: string) => void }).onEmailInput(
+        'alice2@example.com',
+      );
+      fixture.detectChanges();
+      expect(errorTexts()).not.toContain('Cet e-mail est déjà utilisé.');
+    });
+
+    it('shows a rate-limit toast when register fails with 429', () => {
+      authService.register.mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status: 429 })),
+      );
+      field('username').set('alice');
+      field('email').set('alice@example.com');
+      field('password').set('secret123');
+      field('confirmPassword').set('secret123');
+      submit();
+
+      expect(uiService.showToast).toHaveBeenCalledWith('Trop de tentatives. Réessayez dans quelques minutes.');
+    });
+
+    it('shows the username error under the field when the server rejects it with a 400 detail', () => {
+      authService.register.mockReturnValue(
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 400,
+              error: { error: 'Validation failed', details: [{ field: 'username', message: 'Invalid value' }] },
+            }),
+        ),
+      );
+      field('username').set('alice');
+      field('email').set('alice@example.com');
+      field('password').set('secret123');
+      field('confirmPassword').set('secret123');
+      submit();
+
+      expect(errorTexts()).toContain("Le nom d'utilisateur doit contenir entre 2 et 50 caractères.");
+      expect(uiService.showToast).not.toHaveBeenCalled();
+    });
+
+    it('shows the password error under the field when the server rejects it with a 400 detail', () => {
+      authService.register.mockReturnValue(
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 400,
+              error: { error: 'Validation failed', details: [{ field: 'password', message: 'Invalid value' }] },
+            }),
+        ),
+      );
+      field('username').set('alice');
+      field('email').set('alice@example.com');
+      field('password').set('secret123');
+      field('confirmPassword').set('secret123');
+      submit();
+
+      expect(errorTexts()).toContain('Le mot de passe doit contenir entre 6 et 128 caractères.');
+      expect(uiService.showToast).not.toHaveBeenCalled();
     });
   });
 });

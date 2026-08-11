@@ -1,7 +1,8 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpErrorResponse } from '@angular/common/http';
 import { provideRouter, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { LoginPage } from './login.page';
 import { AuthService } from '../../../core/services/auth.service';
 import { UiService } from '../../../ui/ui.service';
@@ -25,6 +26,7 @@ describe('LoginPage', () => {
     uiService.showLoading.mockReturnValue(
       of({ dismiss: jest.fn() } as unknown as HTMLIonLoadingElement),
     );
+    uiService.showToast.mockReturnValue(of(undefined));
     authService.login.mockReturnValue(of(VALID_AUTH_RESPONSE));
 
     await TestBed.configureTestingModule({
@@ -54,9 +56,9 @@ describe('LoginPage', () => {
   }
 
   function errorTexts(): string[] {
-    return Array.from<Element>(
-      fixture.nativeElement.querySelectorAll('ion-note[slot="error"]')
-    ).map((el) => el.textContent?.trim() ?? '');
+    return Array.from<Element>(fixture.nativeElement.querySelectorAll('.field-error-text')).map(
+      (el) => el.textContent?.trim() ?? '',
+    );
   }
 
   it('creates the component', () => {
@@ -159,6 +161,22 @@ describe('LoginPage', () => {
       field('password').set('secret123');
       submit();
       expect(router.navigate).toHaveBeenCalledWith(['/tabs/search']);
+    });
+
+    it('shows an incorrect-credentials toast when login fails with 401', () => {
+      authService.login.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 401 })));
+      field('email').set('alice@example.com');
+      field('password').set('secret123');
+      submit();
+      expect(uiService.showToast).toHaveBeenCalledWith('Email ou mot de passe incorrect.');
+    });
+
+    it('shows a rate-limit toast when login fails with 429', () => {
+      authService.login.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 429 })));
+      field('email').set('alice@example.com');
+      field('password').set('secret123');
+      submit();
+      expect(uiService.showToast).toHaveBeenCalledWith('Trop de tentatives. Réessayez dans quelques minutes.');
     });
   });
 });

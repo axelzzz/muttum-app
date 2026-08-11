@@ -14,6 +14,12 @@ Change history for `muttum-app`, generated from Git commits and grouped by compo
 
 ### Fixed
 
+- Fixed field-level error messages not being visible on any auth form (register, login, forgot-password, reset-password): the `<ion-note slot="error">` pattern doesn't render (Ionic 8's `ion-item` has no matching slot), and `ion-input`'s native `errorText`/`ion-invalid` class approach was silently wiped by the component's own re-render whenever `errorText` changed; replaced with a plain, Angular-owned `<p class="field-error-text" role="alert">` rendered as a sibling of the field, wired to it via `aria-describedby`
+- Search in the "My dictionary" tab now queries the full server-side word list instead of only filtering the words already loaded on the client
+- Show the "email already used" error under the email field on the account creation page instead of only as a generic toast
+- Show server-side field validation errors (username/email/password) under the relevant field, and a dedicated rate-limit message, across register, login, forgot-password, and reset-password
+- Mirror the backend's username (≤50) and password (≤128) max-length limits in client-side validation on the register and reset-password forms
+- Distinguish an expired/invalid reset link from a plain password validation failure on the reset-password page, instead of showing the same message for both
 - Replaced the placeholder "M" badge on the account creation page with the official Greek-lettered wordmark logo (`assets/logo.svg`)
 - Style and sidebar (`fef8a2e`)
 - `npm run lint` failing with "could not find config file" by migrating ESLint config to flat config (`eslint.config.js`) for ESLint 9

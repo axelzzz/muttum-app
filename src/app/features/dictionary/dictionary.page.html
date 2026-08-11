@@ -24,15 +24,18 @@
   <ion-toolbar>
     <ion-searchbar
       placeholder="Filtrer mes mots…"
-      debounce="0"
+      debounce="300"
       animated
       show-clear-button="focus"
-      (ionInput)="onFilterInput($event)"
-      (ionChange)="onSearch($event)"
+      (ionInput)="onSearchInput($event)"
       (ionClear)="clearSearch()"
       aria-label="Filtrer les mots de mon dictionnaire"
     ></ion-searchbar>
   </ion-toolbar>
+  @if (isSearching()) {
+    <ion-progress-bar type="indeterminate" aria-hidden="true"></ion-progress-bar>
+    <span class="sr-only" role="status">Recherche en cours…</span>
+  }
 </ion-header>
 
 <ion-content [fullscreen]="true">
@@ -63,14 +66,14 @@
     </ul>
   }
 
-  @if (!isLoading() && displayedWords().length === 0) {
+  @if (!isLoading() && words().length === 0) {
     <div class="empty-state" aria-live="polite">
       <div class="empty-icon" aria-hidden="true">
         <ion-icon [name]="showFavoritesOnly() ? 'star-outline' : 'book-outline'"></ion-icon>
       </div>
-      @if (words().length > 0) {
+      @if (searchQuery().trim(); as query) {
         <h2 class="empty-title">Aucun résultat</h2>
-        <p class="empty-text">Aucun mot ne correspond à « {{ filterText() }} ».</p>
+        <p class="empty-text">Aucun mot ne correspond à « {{ query }} ».</p>
       } @else {
         <h2 class="empty-title">
           {{ showFavoritesOnly() ? 'Aucun favori' : 'Dictionnaire vide' }}
@@ -84,9 +87,9 @@
     </div>
   }
 
-  @if (!isLoading() && displayedWords().length > 0) {
-    <ul class="word-list">
-      @for (entry of displayedWords(); track entry.id) {
+  @if (!isLoading() && words().length > 0) {
+    <ul class="word-list" [attr.aria-busy]="isSearching()">
+      @for (entry of words(); track entry.id) {
         <li class="word-item">
           <button
             class="word-card"

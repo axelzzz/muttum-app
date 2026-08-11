@@ -12,38 +12,28 @@
           class="form-field"
           [class.field-invalid]="(submitted() || usernameTouched()) && usernameErrors()"
         >
-          <ion-item
-            class="form-item"
-            [class.ion-invalid]="(submitted() || usernameTouched()) && usernameErrors()"
-            lines="none"
-          >
+          <ion-item class="form-item" lines="none">
             <ion-label position="floating">Nom d'utilisateur</ion-label>
             <ion-input
               type="text"
               autocomplete="username"
               aria-label="Nom d'utilisateur"
               aria-required="true"
-              (ionInput)="username.set($event.detail.value ?? '')"
+              [attr.aria-describedby]="usernameErrorMessage() ? 'username-error' : null"
+              (ionInput)="onUsernameInput($event.detail.value)"
               (ionBlur)="usernameTouched.set(true)"
             ></ion-input>
-            @if ((submitted() || usernameTouched()) && usernameErrors()?.required) {
-              <ion-note slot="error">Le nom d'utilisateur est requis.</ion-note>
-            }
-            @if ((submitted() || usernameTouched()) && usernameErrors()?.minlength) {
-              <ion-note slot="error">Minimum 2 caractères.</ion-note>
-            }
           </ion-item>
+          @if (usernameErrorMessage(); as message) {
+            <p id="username-error" class="field-error-text" role="alert">{{ message }}</p>
+          }
         </div>
 
         <div
           class="form-field"
           [class.field-invalid]="(submitted() || emailTouched()) && emailErrors()"
         >
-          <ion-item
-            class="form-item"
-            [class.ion-invalid]="(submitted() || emailTouched()) && emailErrors()"
-            lines="none"
-          >
+          <ion-item class="form-item" lines="none">
             <ion-label position="floating">Adresse e-mail</ion-label>
             <ion-input
               type="email"
@@ -51,34 +41,29 @@
               inputmode="email"
               aria-label="Adresse e-mail"
               aria-required="true"
-              (ionInput)="email.set($event.detail.value ?? '')"
+              [attr.aria-describedby]="emailErrorMessage() ? 'email-error' : null"
+              (ionInput)="onEmailInput($event.detail.value)"
               (ionBlur)="emailTouched.set(true)"
             ></ion-input>
-            @if ((submitted() || emailTouched()) && emailErrors()?.required) {
-              <ion-note slot="error">L'e-mail est requis.</ion-note>
-            }
-            @if ((submitted() || emailTouched()) && emailErrors()?.email) {
-              <ion-note slot="error">Format d'e-mail invalide.</ion-note>
-            }
           </ion-item>
+          @if (emailErrorMessage(); as message) {
+            <p id="email-error" class="field-error-text" role="alert">{{ message }}</p>
+          }
         </div>
 
         <div
           class="form-field"
           [class.field-invalid]="(submitted() || passwordTouched()) && passwordErrors()"
         >
-          <ion-item
-            class="form-item"
-            [class.ion-invalid]="(submitted() || passwordTouched()) && passwordErrors()"
-            lines="none"
-          >
+          <ion-item class="form-item" lines="none">
             <ion-label position="floating">Mot de passe</ion-label>
             <ion-input
               [type]="isPasswordVisible() ? 'text' : 'password'"
               autocomplete="new-password"
               aria-label="Mot de passe"
               aria-required="true"
-              (ionInput)="password.set($event.detail.value ?? '')"
+              [attr.aria-describedby]="passwordErrorMessage() ? 'password-error' : null"
+              (ionInput)="onPasswordInput($event.detail.value)"
               (ionBlur)="passwordTouched.set(true)"
             ></ion-input>
             <ion-button
@@ -94,40 +79,31 @@
                 aria-hidden="true"
               ></ion-icon>
             </ion-button>
-            @if ((submitted() || passwordTouched()) && passwordErrors()?.required) {
-              <ion-note slot="error">Le mot de passe est requis.</ion-note>
-            }
-            @if ((submitted() || passwordTouched()) && passwordErrors()?.minlength) {
-              <ion-note slot="error">Minimum 6 caractères.</ion-note>
-            }
           </ion-item>
+          @if (passwordErrorMessage(); as message) {
+            <p id="password-error" class="field-error-text" role="alert">{{ message }}</p>
+          }
         </div>
 
         <div
           class="form-field"
           [class.field-invalid]="(submitted() || confirmPasswordTouched()) && confirmPasswordErrors()"
         >
-          <ion-item
-            class="form-item"
-            [class.ion-invalid]="(submitted() || confirmPasswordTouched()) && confirmPasswordErrors()"
-            lines="none"
-          >
+          <ion-item class="form-item" lines="none">
             <ion-label position="floating">Confirmer le mot de passe</ion-label>
             <ion-input
               [type]="isPasswordVisible() ? 'text' : 'password'"
               autocomplete="new-password"
               aria-label="Confirmer le mot de passe"
               aria-required="true"
+              [attr.aria-describedby]="confirmPasswordErrorMessage() ? 'confirm-password-error' : null"
               (ionInput)="confirmPassword.set($event.detail.value ?? '')"
               (ionBlur)="confirmPasswordTouched.set(true)"
             ></ion-input>
-            @if ((submitted() || confirmPasswordTouched()) && confirmPasswordErrors()?.required) {
-              <ion-note slot="error">Le mot de passe de confirmation est requis.</ion-note>
-            }
-            @if ((submitted() || confirmPasswordTouched()) && confirmPasswordErrors()?.mismatch) {
-              <ion-note slot="error">Les mots de passe ne correspondent pas.</ion-note>
-            }
           </ion-item>
+          @if (confirmPasswordErrorMessage(); as message) {
+            <p id="confirm-password-error" class="field-error-text" role="alert">{{ message }}</p>
+          }
         </div>
 
         <ion-button

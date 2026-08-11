@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
-  computed,
   effect,
   inject,
   signal,
@@ -17,6 +16,7 @@ import {
   IonIcon,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
+  IonProgressBar,
   IonRefresher,
   IonRefresherContent,
   IonSearchbar,
@@ -36,18 +36,8 @@ import { GetApiWordsParams, UserWord } from '../../core/api/model';
 import { SidebarService } from '../../core/services/sidebar.service';
 
 const PAGE_SIZE = 20;
-const UNICODE_CANONICAL_DECOMPOSITION = 'NFD';
 
-function stripDiacritics(value: string): string {
-  return value
-    .normalize(UNICODE_CANONICAL_DECOMPOSITION)
-    .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase();
-}
-
-function matchesFilter(entry: UserWord, filterText: string): boolean {
-  return stripDiacritics(entry.word ?? '').includes(stripDiacritics(filterText));
-}
+type LoadMode = 'blocking' | 'background' | 'append';
 
 @Component({
   selector: 'app-dictionary',
@@ -62,6 +52,7 @@ function matchesFilter(entry: UserWord, filterText: string): boolean {
     IonIcon,
     IonSearchbar,
     IonContent,
+    IonProgressBar,
     IonRefresher,
     IonRefresherContent,
     IonSkeletonText,
@@ -77,19 +68,13 @@ export class DictionaryPage implements OnInit {
 
   protected readonly words = signal<UserWord[]>([]);
   protected readonly isLoading = signal(true);
+  protected readonly isSearching = signal(false);
   protected readonly hasMore = signal(true);
   protected readonly showFavoritesOnly = signal(false);
-  protected readonly filterText = signal('');
-
-  protected readonly displayedWords = computed<UserWord[]>(() => {
-    const filterText = this.filterText().trim();
-    return filterText
-      ? this.words().filter((entry) => matchesFilter(entry, filterText))
-      : this.words();
-  });
+  protected readonly searchQuery = signal('');
 
   private currentPage = 1;
-  private searchQuery = '';
+  private latestRequestId = 0;
 
   constructor() {
     addIcons({ star, starOutline, bookOutline, chevronForwardOutline });
@@ -117,82 +102,85 @@ export class DictionaryPage implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadWords(true);
+    this.loadWords('blocking');
   }
 
   ionViewWillEnter(): void {
-    this.resetAndLoad();
+    this.resetAndLoad('blocking');
   }
 
   protected refresh(event?: CustomEvent): void {
-    this.resetAndLoad(event);
+    this.resetAndLoad('blocking', event);
   }
 
-  protected onFilterInput(event: CustomEvent): void {
-    this.filterText.set((event.detail.value as string | undefined) ?? '');
-  }
-
-  protected onSearch(event: CustomEvent): void {
-    this.searchQuery = (event.detail.value as string | undefined)?.trim() ?? '';
-    this.resetAndLoad();
+  protected onSearchInput(event: CustomEvent): void {
+    this.searchQuery.set((event.detail.value as string | undefined) ?? '');
+    this.resetAndLoad('background');
   }
 
   protected clearSearch(): void {
-    this.searchQuery = '';
-    this.filterText.set('');
-    this.resetAndLoad();
+    this.searchQuery.set('');
+    this.resetAndLoad('background');
   }
 
   protected toggleFavorites(): void {
     this.showFavoritesOnly.update((v) => !v);
-    this.resetAndLoad();
+    this.resetAndLoad('background');
   }
 
   protected loadMore(event: InfiniteScrollCustomEvent): void {
     this.currentPage++;
-    this.loadWords(false, undefined, event);
+    this.loadWords('append', undefined, event);
   }
 
   protected openDetail(userWord: UserWord): void {
     this.router.navigate(['/word', userWord.id]);
   }
 
-  private resetAndLoad(refreshEvent?: CustomEvent): void {
+  private resetAndLoad(mode: 'blocking' | 'background', refreshEvent?: CustomEvent): void {
     this.currentPage = 1;
-    this.words.set([]);
     this.hasMore.set(true);
-    this.loadWords(true, refreshEvent);
+    this.loadWords(mode, refreshEvent);
   }
 
   private buildQuery(): GetApiWordsParams {
+    const trimmedQuery = this.searchQuery().trim();
     return {
       page: this.currentPage,
       limit: PAGE_SIZE,
-      ...(this.searchQuery && { search: this.searchQuery }),
+      ...(trimmedQuery && { search: trimmedQuery }),
       ...(this.showFavoritesOnly() && { favorite: true }),
     };
   }
 
   private loadWords(
-    showSpinner: boolean,
+    mode: LoadMode,
     refreshEvent?: CustomEvent,
     infiniteEvent?: InfiniteScrollCustomEvent,
   ): void {
-    if (showSpinner) this.isLoading.set(true);
+    if (mode === 'blocking') this.isLoading.set(true);
+    if (mode === 'background') this.isSearching.set(true);
+
+    const requestId = ++this.latestRequestId;
 
     const onSettled = (): void => {
-      this.isLoading.set(false);
+      if (mode === 'blocking') this.isLoading.set(false);
+      if (mode === 'background') this.isSearching.set(false);
       refreshEvent?.detail?.complete?.();
       infiniteEvent?.target?.complete();
     };
 
     this.wordService.getApiWords(this.buildQuery()).subscribe({
       next: ({ items = [], pagination }) => {
-        const updated = showSpinner ? items : [...this.words(), ...items];
-        this.words.set(updated);
-        this.hasMore.set(
-          updated.length < (pagination?.total ?? 0) && items.length === PAGE_SIZE,
-        );
+        // A slower, now-superseded request must not overwrite results from a
+        // request issued after it (e.g. fast typing racing the debounced search).
+        if (requestId === this.latestRequestId) {
+          const updated = mode === 'append' ? [...this.words(), ...items] : items;
+          this.words.set(updated);
+          this.hasMore.set(
+            updated.length < (pagination?.total ?? 0) && items.length === PAGE_SIZE,
+          );
+        }
         onSettled();
       },
       error: onSettled,
