@@ -8,6 +8,7 @@ import {
 import { filter, switchMap, tap } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 import {
   IonBackButton,
   IonButton,
@@ -59,6 +60,7 @@ export class WordDetailPage implements OnInit {
   private readonly router = inject(Router);
   private readonly wordService = inject(WordsService);
   private readonly ui = inject(UiService);
+  private readonly title = inject(Title);
 
   protected readonly userWord = signal<LoadedWord | null>(null);
   protected readonly isLoading = signal(true);
@@ -73,6 +75,7 @@ export class WordDetailPage implements OnInit {
       next: (data) => {
         this.userWord.set(data as LoadedWord);
         this.isLoading.set(false);
+        this.title.setTitle(`Muttum — Votre dictionnaire personnel — ${(data as LoadedWord).word}`);
       },
       error: () => {
         this.isLoading.set(false);

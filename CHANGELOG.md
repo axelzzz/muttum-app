@@ -22,6 +22,9 @@ Change history for `muttum-app`, generated from Git commits and grouped by compo
 - Mirror the backend's username (≤50) and password (≤128) max-length limits in client-side validation on the register and reset-password forms
 - Distinguish an expired/invalid reset link from a plain password validation failure on the reset-password page, instead of showing the same message for both
 - Replaced the placeholder "M" badge on the account creation page with the official Greek-lettered wordmark logo (`assets/logo.svg`)
+- Replaced the placeholder "M" badge on the login, forgot-password, and reset-password pages with the official wordmark logo (`assets/logo.svg`), matching the account creation page
+- Replaced the redundant "Muttum" `<h1>` on the login page (the logo above it already carries the brand name) with "Connexion", matching the page-specific heading pattern used on the other auth pages
+- Gave every route a distinct, descriptive document `<title>` (RGAA 8.5 / WCAG 2.4.2) instead of the static one from `index.html` applying everywhere; the word detail page updates its title dynamically once the word loads
 - Style and sidebar (`fef8a2e`)
 - `npm run lint` failing with "could not find config file" by migrating ESLint config to flat config (`eslint.config.js`) for ESLint 9
 - Removed remaining `@typescript-eslint/no-explicit-any` lint errors in auth spec files and `zone-flags.ts`, previously undetected because lint wasn't running

@@ -16,6 +16,7 @@ export const routes: Routes = [
     path: 'word/:id',
     loadComponent: () => import('./features/word-detail/word-detail.page').then(m => m.WordDetailPage),
     canActivate: [authGuard],
+    title: 'Muttum — Votre dictionnaire personnel — Détail du mot',
   },
   { path: '**', redirectTo: '/tabs/search' },
 ];

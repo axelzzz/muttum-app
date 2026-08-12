@@ -1,12 +1,1 @@
 @use '../auth-layout' as *;
-
-// Official wordmark replaces the shared square badge for this page only —
-// resets the badge's background/shadow, which the SVG already provides itself.
-img.auth-logo {
-  width: auto;
-  height: 64px;
-  max-width: 100%;
-  background: none;
-  box-shadow: none;
-  border-radius: 0;
-}
