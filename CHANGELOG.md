@@ -14,6 +14,7 @@ Change history for `muttum-app`, generated from Git commits and grouped by compo
 
 ### Fixed
 
+- Raised card/input/tab-bar border contrast in both themes (`--ion-border-color`: light ~1.1:1 → 3.15–3.45:1, dark ~1:1 → 4.23–5.17:1) and fixed the tag chip's alpha-blended border reading at ~1.5:1 despite an RGAA-compliant comment; all were below the RGAA 3.2 / WCAG 1.4.11 minimum of 3:1 for UI components
 - Fixed field-level error messages not being visible on any auth form (register, login, forgot-password, reset-password): the `<ion-note slot="error">` pattern doesn't render (Ionic 8's `ion-item` has no matching slot), and `ion-input`'s native `errorText`/`ion-invalid` class approach was silently wiped by the component's own re-render whenever `errorText` changed; replaced with a plain, Angular-owned `<p class="field-error-text" role="alert">` rendered as a sibling of the field, wired to it via `aria-describedby`
 - Search in the "My dictionary" tab now queries the full server-side word list instead of only filtering the words already loaded on the client
 - Show the "email already used" error under the email field on the account creation page instead of only as a generic toast

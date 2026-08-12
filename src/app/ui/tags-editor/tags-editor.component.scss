@@ -5,7 +5,7 @@
   margin-bottom: 0.75rem;
 }
 
-// Pill: border + text color on page background → contrast compliant (RGAA 3.2)
+// Pill: solid shade border (not alpha-blended tertiary, which read at ~1.5:1 — RGAA 3.2 blocker)
 .chip {
   display: inline-flex;
   align-items: center;
@@ -14,7 +14,7 @@
   font-weight: 500;
   background: var(--ion-background-color);
   color: var(--ion-text-color);
-  border: 1.5px solid rgba(var(--ion-color-tertiary-rgb), 0.4);
+  border: 1.5px solid var(--ion-color-tertiary-shade);
   padding: 0.375rem 0.75rem;
   border-radius: 999px;
   min-height: 36px;

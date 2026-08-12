@@ -66,7 +66,8 @@
   --ion-background-color-rgb: 248, 250, 252;
   --ion-text-color: #0f172a;
   --ion-text-color-rgb: 15, 23, 42;
-  --ion-border-color: #e2e8f0;
+  // #e2e8f0 was 1.05:1 on card bg / 1.18:1 on page bg — invisible, RGAA 3.2 blocker (needs 3:1 for UI components)
+  --ion-border-color: #7c8ba3;
 
   // Toolbar
   --ion-toolbar-background: #ffffff;
@@ -74,7 +75,7 @@
 
   // Tab bar
   --ion-tab-bar-background: #ffffff;
-  --ion-tab-bar-border-color: #e2e8f0;
+  --ion-tab-bar-border-color: var(--ion-border-color);
   --ion-tab-bar-color: #64748b;
   --ion-tab-bar-color-selected: #0f766e;
 
@@ -130,13 +131,14 @@
   --ion-background-color-rgb: 15, 23, 42;
   --ion-text-color: #f1f5f9;
   --ion-text-color-rgb: 241, 245, 249;
-  --ion-border-color: #1e293b;
+  // #1e293b matched the card bg exactly (1:1, invisible) — RGAA 3.2 blocker; 4.23:1 on card / 5.17:1 on page
+  --ion-border-color: #7c8ba3;
 
   --ion-toolbar-background: #0f172a;
   --ion-toolbar-color: #f1f5f9;
 
   --ion-tab-bar-background: #0f172a;
-  --ion-tab-bar-border-color: #1e293b;
+  --ion-tab-bar-border-color: var(--ion-border-color);
   --ion-tab-bar-color: #94a3b8;
   --ion-tab-bar-color-selected: #2dd4bf;
 
