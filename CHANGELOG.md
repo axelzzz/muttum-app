@@ -14,6 +14,7 @@ Change history for `muttum-app`, generated from Git commits and grouped by compo
 
 ### Fixed
 
+- `npm ci` failing on GitHub Actions (Node 22 / npm 10) with "Missing: chokidar@4.0.3 from lock file": `package-lock.json` had been regenerated locally with npm 11, which drops `@ionic/angular-toolkit`'s optional `chokidar@^4`/`readdirp@^4` fallback entries that npm 10 still requires; regenerated the lock file with npm 10 to match the CI environment
 - Raised card/input/tab-bar border contrast in both themes (`--ion-border-color`: light ~1.1:1 → 3.15–3.45:1, dark ~1:1 → 4.23–5.17:1) and fixed the tag chip's alpha-blended border reading at ~1.5:1 despite an RGAA-compliant comment; all were below the RGAA 3.2 / WCAG 1.4.11 minimum of 3:1 for UI components
 - Fixed field-level error messages not being visible on any auth form (register, login, forgot-password, reset-password): the `<ion-note slot="error">` pattern doesn't render (Ionic 8's `ion-item` has no matching slot), and `ion-input`'s native `errorText`/`ion-invalid` class approach was silently wiped by the component's own re-render whenever `errorText` changed; replaced with a plain, Angular-owned `<p class="field-error-text" role="alert">` rendered as a sibling of the field, wired to it via `aria-describedby`
 - Search in the "My dictionary" tab now queries the full server-side word list instead of only filtering the words already loaded on the client
@@ -35,6 +36,7 @@ Change history for `muttum-app`, generated from Git commits and grouped by compo
 
 ### Other
 
+- Removed duplicated form-validation, password-visibility-toggle, and submit-pipeline logic across the login, register, forgot-password, and reset-password pages by extracting shared helpers (`field-validators.util.ts`, `password-visibility.util.ts`, `auth-form-submit.util.ts` in `features/auth/`, and `fieldErrorMessage` in `ui/field-error.util.ts`); no behavior change, all existing tests pass unmodified
 - Migrated from the deprecated Webpack-based `@angular-devkit/build-angular` builders to the esbuild-based `@angular/build` builders (`application`/`dev-server`/`extract-i18n`), and removed the pinned `.browserslistrc` in favor of Angular's built-in "baseline widely available" browser support policy, to clear the CLI's build-system-deprecation and unsupported-browser warnings
 - Show a single usage example per definition instead of a list, matching the backend's change to store only the first Wiktionary example
 - Chain the release pipeline into deploy: it now calls `deploy-android.yml` with the exact release commit SHA once the release commit is pushed, instead of relying on the tag push to trigger it separately
