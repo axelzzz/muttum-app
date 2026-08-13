@@ -12,6 +12,10 @@ Change history for `muttum-app`, generated from Git commits and grouped by compo
 - Android app icons (`c433abb`)
 - Initial commit (`d1a81a0`, `9ae1911`)
 
+### Removed
+
+- Removed the password-reset flow (forgot-password/reset-password pages, routes, `AuthService.forgotPassword`/`resetPassword`, and related payload/response types) — no longer supported by the backend API
+
 ### Fixed
 
 - `npm ci` failing on GitHub Actions (Node 22 / npm 10) with "Missing: chokidar@4.0.3 from lock file": `package-lock.json` had been regenerated locally with npm 11, which drops `@ionic/angular-toolkit`'s optional `chokidar@^4`/`readdirp@^4` fallback entries that npm 10 still requires; regenerated the lock file with npm 10 to match the CI environment

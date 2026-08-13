@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   IonButton,
   IonContent,
@@ -19,7 +19,7 @@ import { submitAuthForm } from '../auth-form-submit.util';
   selector: 'app-login',
   templateUrl: './login.page.html',
   styleUrl: './login.page.scss',
-  imports: [RouterLink, IonContent, IonItem, IonLabel, IonInput, IonButton, IonIcon],
+  imports: [IonContent, IonItem, IonLabel, IonInput, IonButton, IonIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginPage {
